@@ -3,6 +3,44 @@ import { connectProgressWS, getAnalysisStatus, uploadVideo } from '../services/a
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+const normalizeAnalysisData = (payload) => {
+  if (!payload || typeof payload !== 'object') return payload;
+
+  const rawInsights = Array.isArray(payload.insights) ? payload.insights : [];
+  const insightSeen = new Set();
+  const insights = [];
+  for (const item of rawInsights) {
+    const key = `${normalizeText(item?.title)}|${normalizeText(item?.description)}`;
+    if (!normalizeText(item?.title) || insightSeen.has(key)) continue;
+    insightSeen.add(key);
+    insights.push(item);
+  }
+
+  const rawSuggestions = Array.isArray(payload.suggestions) ? payload.suggestions : [];
+  const seen = new Set();
+  const suggestions = [];
+  for (const item of rawSuggestions) {
+    const key = normalizeText(item?.text);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    suggestions.push({
+      ...item,
+      jump_to: item?.jump_to ?? item?.jumpTo ?? 0,
+      alternatives: Array.isArray(item?.alternatives) ? item.alternatives : [],
+    });
+    if (suggestions.length >= 5) break;
+  }
+
+  return {
+    ...payload,
+    insights,
+    suggestions,
+    what_if: payload.what_if ?? payload.whatIf ?? null,
+  };
+};
+
 const useStore = create((set, get) => ({
   // Data
   data: null,
@@ -79,11 +117,12 @@ const useStore = create((set, get) => ({
           });
 
           if (statusPayload.status === 'completed' && statusPayload.data) {
+            const normalizedData = normalizeAnalysisData(statusPayload.data);
             set({
-              data: statusPayload.data,
+              data: normalizedData,
               isLoading: false,
               error: null,
-              videoDuration: statusPayload.data.video_duration || 60,
+              videoDuration: normalizedData.video_duration || 60,
               currentTime: 0,
               isPlaying: false,
               processingProgress: 100,

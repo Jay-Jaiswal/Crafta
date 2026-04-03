@@ -1,0 +1,281 @@
+{
+  "video_id": "de90d57d0391",
+  "timestamp": "2026-04-03T23:02:35.999544",
+  "data": {
+    "video_url": "/uploads/de90d57d0391/video.mp4",
+    "video_duration": 10.416666666666666,
+    "overall_score": 16.8,
+    "total_views": 2750,
+    "avg_watch_time": "4s",
+    "completion_rate": "35%",
+    "summary": "Most critical interval is 7s-8s with average score 6.7%. Overall score is 16.8% based on visual dynamics, clarity, focal presence, and pacing signals.",
+    "attention_scores": [
+      {
+        "time": 0.0,
+        "score": 5.3,
+        "label": "Drop zone"
+      },
+      {
+        "time": 1.0,
+        "score": 22.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 2.0,
+        "score": 27.2,
+        "label": "Scene change"
+      },
+      {
+        "time": 3.0,
+        "score": 29.1,
+        "label": "Scene change"
+      },
+      {
+        "time": 4.0,
+        "score": 11.6,
+        "label": "Drop zone"
+      },
+      {
+        "time": 5.0,
+        "score": 8.7,
+        "label": "Drop zone"
+      },
+      {
+        "time": 6.0,
+        "score": 7.5,
+        "label": "Drop zone"
+      },
+      {
+        "time": 7.0,
+        "score": 6.6,
+        "label": "Drop zone"
+      },
+      {
+        "time": 8.0,
+        "score": 6.9,
+        "label": "Drop zone"
+      },
+      {
+        "time": 9.0,
+        "score": 25.6,
+        "label": "Scene change"
+      },
+      {
+        "time": 10.0,
+        "score": 33.5,
+        "label": "Scene change"
+      }
+    ],
+    "drops": [
+      {
+        "id": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "reason": "Limited visual dynamics",
+        "severity": "high",
+        "confidence": 94.0,
+        "details": "This segment has limited visual dynamics and weak motion cues. Frames appear underexposed, reducing detail visibility and contrast.",
+        "causes": [
+          "limited_visual_dynamics",
+          "underexposed_visuals",
+          "repetitive_structure",
+          "low_visual_clarity"
+        ]
+      },
+      {
+        "id": 2,
+        "start": 4.0,
+        "end": 9.0,
+        "reason": "Limited visual dynamics",
+        "severity": "high",
+        "confidence": 95,
+        "details": "This segment has limited visual dynamics and weak motion cues. Frames appear underexposed, reducing detail visibility and contrast.",
+        "causes": [
+          "limited_visual_dynamics",
+          "underexposed_visuals",
+          "weak_scene_progression",
+          "repetitive_structure",
+          "low_visual_clarity"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 10.416666666666666,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 16.8
+      }
+    ],
+    "insights": [
+      {
+        "id": 1,
+        "icon": "motion",
+        "title": "Limited visual dynamics",
+        "description": "This segment has limited visual dynamics and weak motion cues. Frames appear underexposed, reducing detail visibility and contrast.",
+        "action": "Introduce a pattern break with a new angle, overlay, or cut within 2-3 seconds.",
+        "time_range": "00:00 - 00:02",
+        "start": 0.0,
+        "end": 2.0,
+        "confidence": 94.0,
+        "severity": "high"
+      },
+      {
+        "id": 2,
+        "icon": "motion",
+        "title": "Limited visual dynamics (4s-9s)",
+        "description": "This segment has limited visual dynamics and weak motion cues. Frames appear underexposed, reducing detail visibility and contrast.",
+        "action": "Introduce a pattern break with a new angle, overlay, or cut within 2-3 seconds.",
+        "time_range": "00:04 - 00:09",
+        "start": 4.0,
+        "end": 9.0,
+        "confidence": 95,
+        "severity": "high"
+      }
+    ],
+    "suggestions": [
+      {
+        "id": 1,
+        "text": "Add faster cuts, scene changes, or B-roll every 2-3 seconds.",
+        "confidence": 98.0,
+        "tag": "Repetitive",
+        "jump_to": 0.0,
+        "impact": "+9% retention"
+      },
+      {
+        "id": 2,
+        "text": "Set expectation in first 2-3 seconds with a clear promise.",
+        "confidence": 68,
+        "tag": "Hook Weak",
+        "jump_to": 0.0,
+        "impact": "+6% retention",
+        "alternatives": [
+          "Open with a bold question.",
+          "Show outcome first, then explain.",
+          "Add a high-contrast visual cue early."
+        ]
+      },
+      {
+        "id": 3,
+        "text": "Increase pacing with tighter edits and faster visual progression.",
+        "confidence": 68,
+        "tag": "Too Slow",
+        "jump_to": 2.6,
+        "impact": "+7% retention",
+        "alternatives": [
+          "Trim pauses longer than 1 second.",
+          "Increase shot-change frequency.",
+          "Add voice emphasis or music lift."
+        ]
+      },
+      {
+        "id": 4,
+        "text": "Add contrast using a new visual pattern or scene change.",
+        "confidence": 68,
+        "tag": "Repetitive",
+        "jump_to": 5.2,
+        "impact": "+5% retention",
+        "alternatives": [
+          "Insert a contrasting b-roll cut.",
+          "Switch camera angle or framing.",
+          "Use on-screen text to reset attention."
+        ]
+      }
+    ],
+    "what_if": {
+      "original_score": 16.8,
+      "improved_score": 24.8,
+      "improvement": 8.0,
+      "trimmed_segments": [
+        {
+          "start": 0.0,
+          "end": 2.0,
+          "label": "Limited visual dynamics"
+        },
+        {
+          "start": 4.0,
+          "end": 9.0,
+          "label": "Limited visual dynamics"
+        }
+      ],
+      "description": "Estimated improvement is calculated from detected drop severity and duration; resolving top drop segments should raise retention consistency."
+    },
+    "analyzer_raw": {
+      "total_drops": 2,
+      "compliance_summary": {
+        "status": "review_recommended",
+        "note": "Rule-based compliance checks focus on visual clarity, readability, and brand-safety cues."
+      },
+      "video_suggestions": [
+        "\ud83d\udd34 CRITICAL: Add a stronger opening hook in the first 3 seconds.",
+        "\ud83d\udfe1 MEDIUM: Reduce repetitive structure using tighter editorial trimming.",
+        "\ud83d\udfe1 MEDIUM: Improve lighting consistency and color grading across underexposed segments.",
+        "\ud83d\udfe2 COMPLIANCE: Verify dark/unclear segments and ambiguous visuals against brand-safety standards.",
+        "\ud83d\udd34 CRITICAL: Re-edit structure to improve pacing and visual variety."
+      ]
+    },
+    "pipeline_preview": [
+      {
+        "timestamp": 0.0,
+        "frame_id": 0,
+        "scene_change": false,
+        "motion_score": 0.0,
+        "brightness_score": 0.345,
+        "edge_density": 0.0569,
+        "human_count": 0,
+        "pacing_score": 0.4,
+        "visual_variation_score": 0.0,
+        "attention_drop_risk": 0.0186
+      },
+      {
+        "timestamp": 1.0,
+        "frame_id": 24,
+        "scene_change": true,
+        "motion_score": 0.0784,
+        "brightness_score": 0.3226,
+        "edge_density": 0.0413,
+        "human_count": 0,
+        "pacing_score": 0.32,
+        "visual_variation_score": 0.0482,
+        "attention_drop_risk": 0.4065
+      },
+      {
+        "timestamp": 2.0,
+        "frame_id": 48,
+        "scene_change": true,
+        "motion_score": 0.0681,
+        "brightness_score": 0.3271,
+        "edge_density": 0.0451,
+        "human_count": 0,
+        "pacing_score": 0.64,
+        "visual_variation_score": 0.0524,
+        "attention_drop_risk": 0.4013
+      },
+      {
+        "timestamp": 3.0,
+        "frame_id": 72,
+        "scene_change": true,
+        "motion_score": 0.0691,
+        "brightness_score": 0.3308,
+        "edge_density": 0.0509,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.0493,
+        "attention_drop_risk": 0.4015
+      },
+      {
+        "timestamp": 4.0,
+        "frame_id": 96,
+        "scene_change": false,
+        "motion_score": 0.0238,
+        "brightness_score": 0.3316,
+        "edge_density": 0.0502,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.0154,
+        "attention_drop_risk": 0.031
+      }
+    ]
+  }
+}

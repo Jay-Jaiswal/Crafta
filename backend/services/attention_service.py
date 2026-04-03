@@ -106,6 +106,143 @@ def _tag_from_solution_text(text: str) -> str:
     return "Hook Weak"
 
 
+def _format_mmss(seconds: float) -> str:
+    total = max(0, int(round(float(seconds))))
+    mm = total // 60
+    ss = total % 60
+    return f"{mm:02d}:{ss:02d}"
+
+
+def _normalized_time_window(start: float, end: float, min_span: float = 2.0) -> tuple[float, float, str]:
+    s = round(max(0.0, float(start)), 1)
+    e = round(max(s, float(end)), 1)
+    if e - s < min_span:
+        e = round(s + min_span, 1)
+    return s, e, f"{_format_mmss(s)} - {_format_mmss(e)}"
+
+
+def _action_hint_from_causes(causes: list[str]) -> str:
+    if "repetitive_structure" in causes:
+        return "Introduce a pattern break with a new angle, overlay, or cut within 2-3 seconds."
+    if "no_clear_focal_subject" in causes:
+        return "Bring a clear focal subject on screen and keep framing stable for 2-4 seconds."
+    if "weak_scene_progression" in causes or "pacing_instability" in causes:
+        return "Tighten pacing by reducing pause time and adding scene transitions every 2-4 seconds."
+    if "limited_visual_dynamics" in causes:
+        return "Increase motion cues using zoom, camera movement, or b-roll to refresh attention."
+    return "Strengthen this moment with clearer structure, motion, and a specific on-screen message."
+
+
+def _alternatives_for_tag(tag: str) -> list[str]:
+    if tag == "Repetitive":
+        return [
+            "Insert a contrasting b-roll cut.",
+            "Switch camera angle or framing.",
+            "Use on-screen text to reset attention.",
+        ]
+    if tag == "Too Slow":
+        return [
+            "Trim pauses longer than 1 second.",
+            "Increase shot-change frequency.",
+            "Add voice emphasis or music lift.",
+        ]
+    return [
+        "Open with a bold question.",
+        "Show outcome first, then explain.",
+        "Add a high-contrast visual cue early.",
+    ]
+
+
+def _compose_suggestion_text(*, tag: str, start: float, end: float, reason: str | None = None) -> str:
+    start_label = _format_mmss(start)
+    end_label = _format_mmss(end)
+    if tag == "Repetitive":
+        return f"At {start_label}-{end_label}, break repetitive visuals with a shot change or b-roll cut."
+    if tag == "Too Slow":
+        return f"At {start_label}-{end_label}, tighten pacing with quicker edits and stronger motion cues."
+    if reason:
+        return f"At {start_label}-{end_label}, strengthen the hook by addressing: {reason}."
+    return f"At {start_label}-{end_label}, strengthen the hook with a clear promise and visual trigger."
+
+
+def _ensure_minimum_suggestions(items: list[dict], duration: float, raw_drops: list[dict], minimum: int = 4) -> list[dict]:
+    if len(items) >= minimum:
+        return items
+
+    next_id = len(items) + 1
+    used = {_normalize_text_for_diversity(s.get("text", "")) for s in items}
+
+    used_windows = {
+        int(round(float(s.get("jump_to", 0))))
+        for s in items
+    }
+
+    for drop in raw_drops:
+        if len(items) >= minimum:
+            break
+
+        start = float(drop.get("start_time", 0.0))
+        end = float(drop.get("end_time", start))
+        causes = drop.get("cause_codes", [])
+        tag = _tag_from_causes(causes)
+        reason = (drop.get("causes") or [""])[0]
+        text = _compose_suggestion_text(tag=tag, start=start, end=end, reason=reason)
+        key = _normalize_text_for_diversity(text)
+        rounded_start = int(round(start))
+
+        if key in used or rounded_start in used_windows:
+            continue
+
+        impact = f"+{int(_clamp((100 - float(drop.get('avg_score', 50))) * 0.12, 4, 18))}% retention"
+        items.append(
+            {
+                "id": next_id,
+                "text": text,
+                "confidence": 68,
+                "tag": tag,
+                "jump_to": round(_clamp(start, 0.0, max(duration, 0.0)), 1),
+                "impact": impact,
+                "alternatives": _alternatives_for_tag(tag),
+            }
+        )
+        used.add(key)
+        used_windows.add(rounded_start)
+        next_id += 1
+
+    if len(items) < minimum:
+        anchors = [0.0, round(duration * 0.25, 1), round(duration * 0.5, 1), round(duration * 0.75, 1)]
+        fallback_tags = ["Hook Weak", "Too Slow", "Repetitive", "Hook Weak"]
+        for i, anchor in enumerate(anchors):
+            if len(items) >= minimum:
+                break
+            rounded_anchor = int(round(anchor))
+            if rounded_anchor in used_windows:
+                continue
+
+            tag = fallback_tags[i]
+            text = _compose_suggestion_text(tag=tag, start=anchor, end=min(duration, anchor + 3.0))
+            key = _normalize_text_for_diversity(text)
+            if key in used:
+                continue
+
+            items.append(
+                {
+                    "id": next_id,
+                    "text": text,
+                    "confidence": 66,
+                    "tag": tag,
+                    "jump_to": anchor,
+                    "impact": "+5% retention",
+                    "alternatives": _alternatives_for_tag(tag),
+                }
+            )
+            used.add(key)
+            used_windows.add(rounded_anchor)
+            next_id += 1
+
+    return items
+
+
 def _build_segments(attention_scores: list[dict], duration: float) -> list[dict]:
     segments: list[dict] = []
     if not attention_scores:
@@ -173,8 +310,8 @@ def _build_what_if(overall_score: float, drops: list[dict]) -> dict:
         "improvement": improvement,
         "trimmed_segments": [
             {
-                "start": d["start"],
-                "end": d["end"],
+                "start": _normalized_time_window(d["start"], d["end"])[0],
+                "end": _normalized_time_window(d["start"], d["end"])[1],
                 "label": d["reason"],
             }
             for d in drops[:3]
@@ -314,7 +451,7 @@ def _feature_vector_from_rows(rows: list[dict], features: dict, start_t: float, 
 
 
 def _default_fallback_suggestions(*, duration: float) -> list[dict]:
-    base_times = [0.0, round(max(0.0, duration * 0.33), 1), round(max(0.0, duration * 0.66), 1)]
+    base_times = [0.0, round(max(0.0, duration * 0.25), 1), round(max(0.0, duration * 0.5), 1), round(max(0.0, duration * 0.75), 1)]
     return [
         {
             "id": 1,
@@ -323,6 +460,7 @@ def _default_fallback_suggestions(*, duration: float) -> list[dict]:
             "tag": "Hook Weak",
             "jump_to": base_times[0],
             "impact": "+6% retention",
+            "alternatives": _alternatives_for_tag("Hook Weak"),
         },
         {
             "id": 2,
@@ -331,6 +469,7 @@ def _default_fallback_suggestions(*, duration: float) -> list[dict]:
             "tag": "Too Slow",
             "jump_to": base_times[1],
             "impact": "+7% retention",
+            "alternatives": _alternatives_for_tag("Too Slow"),
         },
         {
             "id": 3,
@@ -339,6 +478,16 @@ def _default_fallback_suggestions(*, duration: float) -> list[dict]:
             "tag": "Repetitive",
             "jump_to": base_times[2],
             "impact": "+5% retention",
+            "alternatives": _alternatives_for_tag("Repetitive"),
+        },
+        {
+            "id": 4,
+            "text": "Add a concise CTA and visual reset before the closing segment.",
+            "confidence": 66,
+            "tag": "Hook Weak",
+            "jump_to": base_times[3],
+            "impact": "+4% retention",
+            "alternatives": _alternatives_for_tag("Hook Weak"),
         },
     ]
 
@@ -443,10 +592,201 @@ def _sanitize_gemini_suggestions(items: Any, fallback: list[dict], duration: flo
                 "tag": tag,
                 "jump_to": round(_clamp(jump_to, 0.0, max(duration, 0.0)), 1),
                 "impact": impact,
+                "alternatives": _alternatives_for_tag(tag),
             }
         )
 
     return cleaned or fallback
+
+
+def _normalize_text_for_diversity(text: str) -> str:
+    return " ".join(str(text or "").lower().split())
+
+
+def _is_low_diversity_suggestions(items: list[dict]) -> bool:
+    if len(items) < 3:
+        return False
+
+    unique_texts = {
+        _normalize_text_for_diversity(item.get("text", ""))
+        for item in items
+        if str(item.get("text", "")).strip()
+    }
+    return len(unique_texts) <= 1
+
+
+def _dedupe_and_reindex_suggestions(items: list[dict], limit: int = 5) -> list[dict]:
+    seen = set()
+    deduped: list[dict] = []
+
+    for item in items:
+        normalized = _normalize_text_for_diversity(item.get("text", ""))
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped.append(item)
+        if len(deduped) >= limit:
+            break
+
+    if not deduped:
+        return []
+
+    for idx, item in enumerate(deduped, start=1):
+        item["id"] = idx
+    return deduped
+
+
+def _build_unique_insights(items: list[dict], limit: int = 6) -> list[dict]:
+    merged: dict[str, dict] = {}
+
+    # Start with highest-confidence insights so the best explanation wins.
+    ordered = sorted(items, key=lambda x: float(x.get("confidence", 0)), reverse=True)
+
+    for item in ordered:
+        title = str(item.get("title", "")).strip() or "Insight"
+        key = _normalize_text_for_diversity(title)
+        if not key:
+            continue
+
+        if key not in merged:
+            merged[key] = {**item, "title": title}
+            continue
+
+        existing = merged[key]
+        start = min(float(existing.get("start", 0.0)), float(item.get("start", 0.0)))
+        end = max(float(existing.get("end", start)), float(item.get("end", start)))
+        _, _, time_label = _normalized_time_window(start, end, min_span=1.5)
+
+        descriptions = []
+        for desc in [existing.get("description", ""), item.get("description", "")]:
+            cleaned = str(desc).strip()
+            if cleaned and cleaned not in descriptions:
+                descriptions.append(cleaned)
+
+        actions = []
+        for action in [existing.get("action", ""), item.get("action", "")]:
+            cleaned = str(action).strip()
+            if cleaned and cleaned not in actions:
+                actions.append(cleaned)
+
+        merged[key] = {
+            **existing,
+            "start": round(start, 1),
+            "end": round(end, 1),
+            "time_range": time_label,
+            "confidence": max(float(existing.get("confidence", 0)), float(item.get("confidence", 0))),
+            "description": " ".join(descriptions[:2]) if descriptions else existing.get("description", ""),
+            "action": actions[0] if actions else existing.get("action", ""),
+        }
+
+    unique = list(merged.values())
+    unique.sort(key=lambda x: float(x.get("start", 0.0)))
+
+    final_items: list[dict] = []
+    for idx, item in enumerate(unique[:limit], start=1):
+        s, e, time_label = _normalized_time_window(item.get("start", 0.0), item.get("end", 0.0), min_span=1.5)
+        final_items.append(
+            {
+                **item,
+                "id": idx,
+                "start": s,
+                "end": e,
+                "time_range": time_label,
+            }
+        )
+
+    return final_items
+
+
+def _insight_from_avg_score(window_name: str, start: float, end: float, avg_score: float, idx: int) -> dict | None:
+    s, e, label = _normalized_time_window(start, end, min_span=2.0)
+    if avg_score >= 70:
+        return None
+
+    if avg_score < 40:
+        title = f"{window_name} retention risk"
+        description = "Attention remains consistently low in this interval and may trigger early exits."
+        action = "Shorten this segment and add a strong pattern break with a new visual hook."
+        severity = "high"
+        tag_icon = "hook"
+        confidence = 84
+    elif avg_score < 52:
+        title = f"{window_name} pacing slowdown"
+        description = "Momentum drops in this interval, suggesting pacing and transition fatigue."
+        action = "Tighten edits and increase scene variation every 2-4 seconds."
+        severity = "medium"
+        tag_icon = "pacing"
+        confidence = 78
+    else:
+        title = f"{window_name} engagement softening"
+        description = "Engagement weakens here and can improve with clearer focal emphasis."
+        action = "Improve focal subject clarity and reinforce narrative progression in this window."
+        severity = "low"
+        tag_icon = "face"
+        confidence = 72
+
+    return {
+        "id": idx,
+        "icon": tag_icon,
+        "title": title,
+        "description": description,
+        "action": action,
+        "time_range": label,
+        "start": s,
+        "end": e,
+        "confidence": confidence,
+        "severity": severity,
+    }
+
+
+def _build_timeline_insights(attention_scores: list[dict], duration: float, start_id: int = 1) -> list[dict]:
+    if not attention_scores or duration <= 0:
+        return []
+
+    windows = [
+        ("Opening", 0.0, duration * 0.25),
+        ("Early-mid", duration * 0.25, duration * 0.5),
+        ("Late-mid", duration * 0.5, duration * 0.75),
+        ("Closing", duration * 0.75, duration),
+    ]
+
+    insights: list[dict] = []
+    current_id = start_id
+    for name, start, end in windows:
+        points = [float(x.get("score", 0)) for x in attention_scores if start <= float(x.get("time", -1)) <= end]
+        if not points:
+            continue
+        avg_score = float(mean(points))
+        generated = _insight_from_avg_score(name, start, end, avg_score, current_id)
+        if generated:
+            insights.append(generated)
+            current_id += 1
+
+    return insights
+
+
+def _ensure_minimum_insights(items: list[dict], attention_scores: list[dict], duration: float, minimum: int = 6) -> list[dict]:
+    if len(items) >= minimum:
+        return items
+
+    extras = _build_timeline_insights(attention_scores, duration, start_id=len(items) + 1)
+    if not extras:
+        return items
+
+    existing_keys = {
+        _normalize_text_for_diversity(f"{item.get('title','')}|{item.get('description','')}")
+        for item in items
+    }
+    for extra in extras:
+        key = _normalize_text_for_diversity(f"{extra.get('title','')}|{extra.get('description','')}")
+        if key in existing_keys:
+            continue
+        items.append(extra)
+        existing_keys.add(key)
+        if len(items) >= minimum:
+            break
+
+    return items
 
 
 def _extract_gemini_text(response_json: dict) -> str:
@@ -682,10 +1022,16 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
             0,
         )
 
+        drop_start, drop_end, time_label = _normalized_time_window(
+            float(drop.get("start_time", 0.0)),
+            float(drop.get("end_time", 0.0)),
+            min_span=1.5,
+        )
+
         mapped = {
             "id": idx,
-            "start": round(float(drop.get("start_time", 0.0)), 1),
-            "end": round(float(drop.get("end_time", 0.0)), 1),
+            "start": drop_start,
+            "end": drop_end,
             "reason": root_cause,
             "severity": _severity_to_drop_severity(str(drop.get("severity", "medium"))),
             "confidence": confidence,
@@ -700,7 +1046,8 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
                 "icon": _icon_from_cause(causes[0] if causes else "mixed_quality_decline"),
                 "title": root_cause,
                 "description": details_text,
-                "time_range": f"{int(mapped['start'])}s - {int(mapped['end'])}s",
+                "action": _action_hint_from_causes(causes),
+                "time_range": time_label,
                 "start": mapped["start"],
                 "end": mapped["end"],
                 "confidence": confidence,
@@ -730,11 +1077,18 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
                 "tag": _tag_from_causes(causes),
                 "jump_to": jump_to,
                 "impact": f"+{int(_clamp((100 - float(drop.get('avg_score', 50))) * 0.12, 4, 18))}% retention",
+                "alternatives": _alternatives_for_tag(_tag_from_causes(causes)),
             }
         )
 
+    insights = _build_unique_insights(insights, limit=10)
+    insights = _ensure_minimum_insights(insights, attention_scores, duration, minimum=6)
+    insights = _build_unique_insights(insights, limit=10)
+
     if not suggestions:
         suggestions = _default_fallback_suggestions(duration=duration)
+
+    baseline_suggestions = list(suggestions)
 
     set_progress(video_id, "processing", 88, "Predicting model-based solutions")
     await _notify_subscribers(video_id)
@@ -746,9 +1100,17 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
         fallback=suggestions,
         duration=duration,
     )
-    if model_suggestions:
+    if model_suggestions and not _is_low_diversity_suggestions(model_suggestions):
         suggestions = model_suggestions
+    elif model_suggestions and _is_low_diversity_suggestions(model_suggestions):
+        logger.warning("Model suggestions were low-diversity; preserving segment-grounded suggestions")
+        suggestions = baseline_suggestions
     elif not suggestions:
+        suggestions = _default_fallback_suggestions(duration=duration)
+
+    suggestions = _dedupe_and_reindex_suggestions(suggestions, limit=8)
+    suggestions = _ensure_minimum_suggestions(suggestions, duration, raw_drops, minimum=4)
+    if not suggestions:
         suggestions = _default_fallback_suggestions(duration=duration)
 
     overall_score = round(float(analyzer_output.get("overall_score", 0.0)), 1)

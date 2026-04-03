@@ -76,6 +76,7 @@ class Insight(BaseModel):
     icon: str
     title: str
     description: str
+    action: Optional[str] = None
     timeRange: str = Field(..., alias="time_range", serialization_alias="timeRange")
     start: float = Field(..., ge=0)
     end: float = Field(..., ge=0)
@@ -93,6 +94,7 @@ class Suggestion(BaseModel):
     tag: SuggestionTag
     jumpTo: float = Field(..., ge=0, alias="jump_to", serialization_alias="jumpTo")
     impact: str
+    alternatives: list[str] = Field(default_factory=list)
 
     class Config:
         populate_by_name = True

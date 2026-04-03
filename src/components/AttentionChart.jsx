@@ -74,7 +74,13 @@ const AttentionChart = () => {
 
   const scores = data?.attention_scores ?? EMPTY_LIST;
   const drops = data?.drops ?? EMPTY_LIST;
-  const whatIf = data?.whatIf;
+  const rawWhatIf = data?.whatIf ?? data?.what_if;
+  const whatIf = rawWhatIf
+    ? {
+        improvement: Number(rawWhatIf.improvement || 0),
+        trimmedSegments: rawWhatIf.trimmedSegments ?? rawWhatIf.trimmed_segments ?? EMPTY_LIST,
+      }
+    : null;
   const textColor = '#6B7585';
   const gridColor = isDark ? '#252937' : '#EEF0F4';
 

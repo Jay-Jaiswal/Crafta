@@ -6,9 +6,46 @@ import useThemeStore from '../store/useThemeStore';
 import { postFeedback } from '../services/api';
 
 const tagColors = {
-  'Hook Weak': { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20' },
-  'Too Slow': { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
-  'Repetitive': { bg: 'bg-brand-500/10', text: 'text-brand-500', border: 'border-brand-500/20' },
+  'Hook Weak': { bg: 'bg-amber-500/12', text: 'text-amber-600', border: 'border-amber-400/40' },
+  'Too Slow': { bg: 'bg-amber-500/12', text: 'text-amber-600', border: 'border-amber-400/40' },
+  'Repetitive': { bg: 'bg-amber-500/12', text: 'text-amber-600', border: 'border-amber-400/40' },
+};
+
+const formatTime = (seconds) => {
+  const total = Math.max(0, Math.round(Number(seconds || 0)));
+  const mm = Math.floor(total / 60);
+  const ss = total % 60;
+  return `${mm}:${String(ss).padStart(2, '0')}`;
+};
+
+const defaultAlternativesByTag = {
+  'Hook Weak': [
+    'Open with a bold question.',
+    'Show the outcome first, then explain.',
+    'Add a high-contrast visual cue early.',
+  ],
+  'Too Slow': [
+    'Trim pauses longer than 1 second.',
+    'Increase shot-change frequency.',
+    'Add voice emphasis or a music lift.',
+  ],
+  Repetitive: [
+    'Insert a contrasting b-roll cut.',
+    'Switch camera angle or framing.',
+    'Use on-screen text to reset attention.',
+  ],
+};
+
+const parseRangeFromText = (text) => {
+  const match = String(text || '').match(/\bat\s+(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})[,\s]/i);
+  if (!match) return null;
+  return { startLabel: match[1], endLabel: match[2] };
+};
+
+const stripRangePrefix = (text) => {
+  const cleaned = String(text || '').replace(/^\s*at\s+\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}\s*,?\s*/i, '').trim();
+  if (!cleaned) return 'Improve this segment with clearer pacing and visual variety.';
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
 const SuggestionsPanel = () => {
@@ -20,10 +57,25 @@ const SuggestionsPanel = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
-  const suggestions = (data?.suggestions || []).map((item) => ({
-    ...item,
-    jumpTo: item.jumpTo ?? item.jump_to ?? 0,
-  }));
+  const suggestions = (data?.suggestions || []).map((item) => {
+    const tag = item.tag || 'Hook Weak';
+    const jumpTo = item.jumpTo ?? item.jump_to ?? 0;
+    const parsedRange = parseRangeFromText(item.text);
+    const alternatives = Array.isArray(item.alternatives) && item.alternatives.length > 0
+      ? item.alternatives.slice(0, 3)
+      : (defaultAlternativesByTag[tag] || defaultAlternativesByTag['Hook Weak']);
+
+    return {
+      ...item,
+      tag,
+      jumpTo,
+      displayText: stripRangePrefix(item.text),
+      segmentLabel: parsedRange
+        ? `${parsedRange.startLabel} - ${parsedRange.endLabel}`
+        : `${formatTime(jumpTo)} - ${formatTime(jumpTo + 3)}`,
+      alternatives,
+    };
+  });
 
   const handleFeedback = async (id, isAccurate) => {
     recordFeedback(id, isAccurate);
@@ -92,9 +144,32 @@ const SuggestionsPanel = () => {
                 />
               )}
 
-              <p className={`text-xs leading-relaxed mb-2.5 ${isDark ? 'text-surface-200' : 'text-surface-700'}`}>
-                {suggestion.text}
+              <p className={`text-xs leading-relaxed mb-2 ${isDark ? 'text-surface-200' : 'text-surface-700'}`}>
+                {suggestion.displayText}
               </p>
+
+              <p className={`text-[10px] mb-2.5 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
+                Segment: {suggestion.segmentLabel}
+              </p>
+
+              {suggestion.alternatives.length > 0 && (
+                <div className="mb-2.5 space-y-1">
+                  <p className={`text-[10px] uppercase tracking-wider ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
+                    Alternatives
+                  </p>
+                  {suggestion.alternatives.map((option, idx) => (
+                    <div
+                      key={`${suggestion.id}-alt-${idx}`}
+                      className={`flex items-start gap-2 rounded-md px-2 py-1 border ${isDark ? 'bg-amber-500/8 border-amber-400/30' : 'bg-amber-50 border-amber-200'}`}
+                    >
+                      <span className={`mt-0.5 inline-block w-1.5 h-1.5 rounded-sm ${isDark ? 'bg-amber-400' : 'bg-amber-500'}`} />
+                      <p className={`text-[11px] leading-relaxed ${isDark ? 'text-surface-300' : 'text-surface-600'}`}>
+                        {option}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="flex items-center gap-2 mb-2.5">
                 <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md border ${tag.bg} ${tag.text} ${tag.border}`}>
@@ -112,7 +187,7 @@ const SuggestionsPanel = () => {
                   className="flex items-center gap-1 text-[11px] text-brand-500 hover:text-brand-600 transition-colors font-medium"
                 >
                   <ArrowRight className="w-3 h-3" />
-                  Jump to {Math.floor(suggestion.jumpTo / 60)}:{String(suggestion.jumpTo % 60).padStart(2, '0')}
+                  Jump to {formatTime(suggestion.jumpTo)}
                 </button>
 
                 <div className="flex items-center gap-1">

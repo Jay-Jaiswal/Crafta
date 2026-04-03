@@ -52,6 +52,7 @@ const InsightsPanel = () => {
   const insights = (data?.insights || []).map((item) => ({
     ...item,
     timeRange: item.timeRange ?? item.time_range ?? `${Math.floor(item.start || 0)}s - ${Math.floor(item.end || 0)}s`,
+    action: item.action || 'Improve pacing and visual contrast in this interval.',
   }));
 
   const handleClick = (insight) => {
@@ -119,8 +120,11 @@ const InsightsPanel = () => {
                         />
                       )}
                     </div>
-                    <p className={`text-[11px] leading-relaxed mb-1.5 line-clamp-2 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
-                      {insight.description}
+                    <p className={`text-[11px] leading-relaxed mb-1 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
+                      Issue: {insight.description}
+                    </p>
+                    <p className={`text-[11px] leading-relaxed mb-1.5 ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>
+                      Action: {insight.action}
                     </p>
                     <div className="flex items-center gap-1.5">
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${isDark ? 'bg-surface-700 text-surface-400' : 'bg-surface-100 text-surface-500'}`}>

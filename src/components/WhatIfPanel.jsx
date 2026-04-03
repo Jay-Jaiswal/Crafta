@@ -3,6 +3,13 @@ import { Wand2, TrendingUp, Scissors } from 'lucide-react';
 import useStore from '../store/useStore';
 import useThemeStore from '../store/useThemeStore';
 
+const formatTime = (seconds) => {
+  const total = Math.max(0, Math.round(Number(seconds || 0)));
+  const mm = Math.floor(total / 60);
+  const ss = total % 60;
+  return `${mm}:${String(ss).padStart(2, '0')}`;
+};
+
 const WhatIfPanel = () => {
   const data = useStore((s) => s.data);
   const whatIfEnabled = useStore((s) => s.whatIfEnabled);
@@ -99,7 +106,7 @@ const WhatIfPanel = () => {
                     <div className="flex-1">
                       <span className={`text-sm ${isDark ? 'text-surface-200' : 'text-surface-700'}`}>{seg.label}</span>
                       <span className={`text-xs ml-1.5 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
-                        {seg.start}s – {seg.end}s
+                        {formatTime(seg.start)} - {formatTime(seg.end)}
                       </span>
                     </div>
                   </motion.div>

@@ -1,29 +1,59 @@
-import { useState } from 'react';
-import { MessageCircle, Send, LoaderCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MessageCircle, Send, LoaderCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useStore from '../store/useStore';
 import useThemeStore from '../store/useThemeStore';
 import { askChatbot } from '../services/api';
 
-const reasonLabel = {
-  gemini_ok: 'Gemini response',
-  rate_limited: 'Gemini rate limited',
-  model_not_found: 'Gemini model not found',
-  auth_error: 'Gemini auth error',
-  timeout: 'Gemini timeout',
-  network_error: 'Network error',
-  no_api_key: 'No Gemini API key',
+const SOURCE_DETAIL_LABELS = {
+  ready: 'Ready',
+  groq_ok: 'Groq response',
+  groq_error: 'Groq failed',
+  fallback: 'Fallback response',
+  auth_error: 'Provider auth failed',
+  model_not_found: 'Model unavailable',
+  rate_limited: 'Provider rate limited',
+  no_api_key: 'API key missing',
   no_analysis: 'No analysis available',
   analysis_not_found: 'Analysis file missing',
-  gemini_failed: 'Gemini request failed',
+  network_error: 'Network error',
+  request_error: 'Request failed',
+  timeout: 'Request timeout',
+  unknown: 'Unknown source',
 };
 
-const sourceStyles = {
-  gemini: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+const SOURCE_STYLES = {
+  groq: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25',
   fallback: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-  error: 'bg-red-500/10 text-red-500 border-red-500/20',
+  error: 'bg-red-500/10 text-red-500 border-red-500/25',
   system: 'bg-surface-100 text-surface-500 border-surface-200',
 };
+
+const PRESET_CHIPS = [
+  {
+    text: 'How can I improve the first 10 seconds?',
+    keywords: ['improve', 'first', '10 seconds', 'hook', 'intro'],
+  },
+  {
+    text: 'Why did people drop off at 25s?',
+    keywords: ['drop', 'drop off', '25s', 'retention', 'attention'],
+  },
+  {
+    text: "What's the best part of my video?",
+    keywords: ['best part', 'strongest', 'highlight', 'peak'],
+  },
+  {
+    text: 'How do I fix the audio issue?',
+    keywords: ['audio', 'sound', 'voice', 'music', 'fix'],
+  },
+];
+
+const createAssistantMessage = (text, source = 'system', sourceDetail = 'ready') => ({
+  role: 'assistant',
+  text,
+  source,
+  sourceDetail,
+});
 
 const ChatbotPanel = () => {
   const activeVideoId = useStore((s) => s.activeVideoId);
@@ -33,44 +63,56 @@ const ChatbotPanel = () => {
 
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
+  const [hasChattedOnce, setHasChattedOnce] = useState(false);
   const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      text: 'Ask me anything about your analyzed video.',
-      source: 'system',
-      sourceDetail: 'ready',
-    },
+    createAssistantMessage('Ask me anything about your analyzed video.'),
   ]);
+
+  const messageListRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const node = messageListRef.current;
+    if (!node) return;
+    node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' });
+  }, [messages, isAsking]);
+
+  const matchedChips = useMemo(() => {
+    if (hasChattedOnce) return [];
+
+    const query = question.trim().toLowerCase();
+    if (!query) return PRESET_CHIPS;
+
+    return PRESET_CHIPS.filter((chip) => {
+      if (chip.text.toLowerCase().includes(query)) return true;
+      return chip.keywords.some((keyword) => keyword.toLowerCase().includes(query));
+    });
+  }, [hasChattedOnce, question]);
 
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed || isAsking) return;
 
     setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
+    setHasChattedOnce(true);
     setQuestion('');
     setIsAsking(true);
 
     try {
       const result = await askChatbot(trimmed, activeVideoId);
+      const answer = result?.answer || 'No response generated.';
+      const source = result?.source || 'fallback';
+      const sourceDetail = result?.source_detail || 'fallback';
+
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          text: result?.answer || 'No response generated.',
-          source: result?.source || 'fallback',
-          sourceDetail: result?.source_detail || 'gemini_failed',
-          videoId: result?.video_id || 'none',
-        },
+        createAssistantMessage(answer, source, sourceDetail),
       ]);
     } catch (error) {
+      const detail = error?.response?.data?.detail || error?.message || 'Unknown error';
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          text: `Request failed: ${error?.response?.data?.detail || error?.message || 'Unknown error'}`,
-          source: 'error',
-          sourceDetail: 'request_error',
-        },
+        createAssistantMessage(`Request failed: ${detail}`, 'error', 'request_error'),
       ]);
     } finally {
       setIsAsking(false);
@@ -82,6 +124,11 @@ const ChatbotPanel = () => {
       event.preventDefault();
       handleAsk();
     }
+  };
+
+  const onChipClick = (text) => {
+    setQuestion(text);
+    inputRef.current?.focus();
   };
 
   return (
@@ -99,42 +146,62 @@ const ChatbotPanel = () => {
           </span>
         </div>
         {activeVideoId && (
-          <span className={`text-[10px] font-mono ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
+          <span className={`text-xs font-mono ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
             {activeVideoId.slice(0, 12)}
           </span>
         )}
       </div>
 
-      <div className="p-3 space-y-3">
+      <div className="p-3.5 space-y-3.5">
         {!data && (
-          <div className={`text-xs rounded-lg border px-3 py-2 ${isDark ? 'bg-amber-500/5 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600'}`}>
+          <div className={`text-sm rounded-lg border px-3 py-2 ${isDark ? 'bg-amber-500/5 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600'}`}>
             Upload and analyze a video first.
           </div>
         )}
 
-        <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
+        {!hasChattedOnce && matchedChips.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {matchedChips.map((chip) => (
+              <button
+                key={chip.text}
+                type="button"
+                onClick={() => onChipClick(chip.text)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                  isDark
+                    ? 'border-surface-700 bg-surface-800/80 text-surface-300 hover:border-brand-500/40 hover:text-surface-100'
+                    : 'border-surface-300 bg-white text-surface-600 hover:border-brand-300 hover:text-surface-800'
+                }`}
+              >
+                <Sparkles className="h-3 w-3" />
+                {chip.text}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div ref={messageListRef} className="h-80 overflow-y-auto space-y-2.5 pr-1">
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}`}
-              className={`rounded-lg px-3 py-2 text-xs leading-relaxed border ${
+              className={`rounded-lg px-3 py-2.5 text-sm leading-relaxed border ${
                 message.role === 'user'
                   ? isDark
                     ? 'bg-brand-500/10 border-brand-500/20 text-surface-100'
                     : 'bg-brand-50 border-brand-200 text-surface-800'
                   : isDark
-                  ? 'bg-surface-800/50 border-transparent text-surface-300'
+                  ? 'bg-surface-800/50 border-surface-700/60 text-surface-300'
                   : 'bg-surface-50 border-transparent text-surface-600'
               }`}
             >
-              <p>{message.text}</p>
+              <p className="whitespace-pre-line">{message.text}</p>
               {message.role === 'assistant' && message.source && (
                 <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md border ${sourceStyles[message.source] || sourceStyles.system}`}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-md border ${SOURCE_STYLES[message.source] || SOURCE_STYLES.system}`}>
                     {message.source}
                   </span>
                   {message.sourceDetail && (
-                    <span className={`text-[10px] ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
-                      {reasonLabel[message.sourceDetail] || message.sourceDetail}
+                    <span className={`text-xs ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
+                      {SOURCE_DETAIL_LABELS[message.sourceDetail] || message.sourceDetail}
                     </span>
                   )}
                 </div>
@@ -143,14 +210,15 @@ const ChatbotPanel = () => {
           ))}
         </div>
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2.5">
           <textarea
+            ref={inputRef}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Ask about drops, pacing, hooks..."
-            rows={2}
-            className={`flex-1 resize-none rounded-lg border px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500/30 focus:border-brand-500 transition-colors ${
+            rows={3}
+            className={`flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500/30 focus:border-brand-500 transition-colors ${
               isDark
                 ? 'bg-surface-800 border-surface-700 text-surface-200 placeholder:text-surface-600'
                 : 'bg-white border-surface-300 text-surface-700 placeholder:text-surface-400'
@@ -159,7 +227,7 @@ const ChatbotPanel = () => {
           <button
             onClick={handleAsk}
             disabled={isAsking || !question.trim()}
-            className="h-9 px-3 rounded-lg bg-brand-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 hover:bg-brand-700 transition-colors"
+            className="h-11 px-3.5 rounded-lg bg-brand-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 hover:bg-brand-700 transition-colors"
           >
             {isAsking ? <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>

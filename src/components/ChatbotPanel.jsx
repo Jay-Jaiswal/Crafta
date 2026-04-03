@@ -52,6 +52,7 @@ const ChatbotPanel = () => {
 
   const [question, setQuestion] = useState('');
   const [isAsking, setIsAsking] = useState(false);
+  const [hasChattedOnce, setHasChattedOnce] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -62,7 +63,7 @@ const ChatbotPanel = () => {
   ]);
 
   const normalizedQuestion = question.trim().toLowerCase();
-  const activeSuggestions = normalizedQuestion
+  const matchedSuggestions = normalizedQuestion
     ? promptSuggestions.filter((item) => {
         const textMatch = item.text.toLowerCase().includes(normalizedQuestion);
         const keywordMatch = item.keywords.some((kw) =>
@@ -72,9 +73,14 @@ const ChatbotPanel = () => {
       })
     : promptSuggestions;
 
+  const shouldShowSuggestions = !hasChattedOnce && matchedSuggestions.length > 0;
+  const activeSuggestions = shouldShowSuggestions ? matchedSuggestions : [];
+
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed || isAsking) return;
+
+    setHasChattedOnce(true);
 
     setMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
     setQuestion('');
@@ -179,7 +185,9 @@ const ChatbotPanel = () => {
               <button
                 key={item.text}
                 type="button"
-                onClick={() => setQuestion(item.text)}
+                onClick={() => {
+                  setQuestion(item.text);
+                }}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   isDark
                     ? 'bg-surface-800/70 border-surface-700 text-surface-300 hover:bg-surface-700'
@@ -195,7 +203,9 @@ const ChatbotPanel = () => {
         <div className="flex items-end gap-2">
           <textarea
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => {
+              setQuestion(e.target.value);
+            }}
             onKeyDown={onKeyDown}
             placeholder="Ask about drops, pacing, hooks..."
             rows={2}

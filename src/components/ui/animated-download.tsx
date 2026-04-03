@@ -10,6 +10,7 @@ interface DownloadProps {
   width?: string | number;
   height?: string | number;
   isAnimating?: boolean;
+  statusText?: string;
   onAnimationComplete?: () => void;
 }
 
@@ -21,6 +22,7 @@ export function AnimatedDownload({
   width,
   height,
   isAnimating = false,
+  statusText = "READY",
   onAnimationComplete,
 }: DownloadProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -34,16 +36,16 @@ export function AnimatedDownload({
   const [textIterations, setTextIterations] = useState(0);
 
   const easing: Transition["ease"] = shouldReduceMotion ? "linear" : "easeOut";
-  const duration = shouldReduceMotion ? 0.3 : 2.5;
+  const duration = shouldReduceMotion ? 0.4 : 4.5;
 
   useEffect(() => {
-    const newTargetText = isAnimating ? "DOWNLOADING" : "READY";
+    const newTargetText = (statusText || "READY").toUpperCase();
     if (newTargetText !== targetText) {
       setTargetText(newTargetText);
       setTextIterations(0);
       setIsTextAnimating(true);
     }
-  }, [isAnimating, targetText]);
+  }, [statusText, targetText]);
 
   useEffect(() => {
     if (!isTextAnimating) return;
@@ -182,7 +184,7 @@ export function AnimatedDownload({
       initial="hidden"
       animate="visible"
     >
-      <div className="flex items-center mb-2">
+      <div className="flex items-center mb-3">
         <div className={cn("flex -mt-3 flex-col items-center justify-center w-8 h-16 overflow-hidden relative")}>
           <motion.div className="absolute" variants={chevronVariants} animate={isAnimating ? "animating" : "idle"}>
             <ChevronDown size={24} className="text-primary" />
@@ -204,9 +206,9 @@ export function AnimatedDownload({
           >
             <path d="M0.445312 0.5H106.103V8.017L99.2813 14.838H0.445312V0.5Z" />
           </svg>
-          <div className="relative px-4 py-1.5 font-mono font-bold text-sm text-black">
+          <div className="relative px-4 py-1.5 font-mono font-bold text-lg text-black">
             <div className="flex items-center">
-              <div className="flex font-mono font-bold text-black">
+              <div className="flex font-mono font-bold text-black text-lg tracking-wide">
                 {displayText.map((letter, i) => (
                   <motion.span
                     key={`${targetText}-${i}`}
@@ -231,25 +233,25 @@ export function AnimatedDownload({
         </div>
       </div>
 
-      <div className="w-full h-1 bg-foreground mb-3 rounded-full" />
+      <div className="w-full h-1 bg-foreground mb-4 rounded-full" />
 
-      <div className="flex items-center mb-1">
-        <div className="w-32">
-          <div className="text-xs font-mono">PROGRESS</div>
+      <div className="flex items-center mb-1.5">
+        <div className="w-36">
+          <div className="text-base font-mono">PROGRESS</div>
         </div>
 
-        <div className="flex ml-6">
-          <div className="w-28 text-left">
-            <div className="text-xs font-mono">EST. TIME</div>
+        <div className="flex ml-7">
+          <div className="w-32 text-left">
+            <div className="text-base font-mono">EST. TIME</div>
           </div>
-          <div className="w-28 text-left">
-            <div className="text-xs font-mono">FILES COPIED:</div>
+          <div className="w-32 text-left">
+            <div className="text-base font-mono">FILES COPIED:</div>
           </div>
         </div>
       </div>
 
       <div className="flex items-center">
-        <div className="w-32">
+        <div className="w-36">
           <div className="w-full h-2.5 border dark:border-white border-black bg-transparent rounded-full flex items-center px-0.5">
             <motion.div
               className="h-1 dark:bg-white bg-black rounded-full"
@@ -260,12 +262,12 @@ export function AnimatedDownload({
           </div>
         </div>
 
-        <div className="flex ml-6">
-          <div className="w-28 text-left">
-            <div className="text-sm font-mono">{formatTime(timeRemainingSeconds)}</div>
+        <div className="flex ml-7">
+          <div className="w-32 text-left">
+            <div className="text-lg font-mono">{formatTime(timeRemainingSeconds)}</div>
           </div>
-          <div className="w-28 text-left">
-            <div className="text-sm font-mono">{filesCount.toLocaleString()}</div>
+          <div className="w-32 text-left">
+            <div className="text-lg font-mono">{filesCount.toLocaleString()}</div>
           </div>
         </div>
       </div>

@@ -15,8 +15,6 @@ const Dashboard = () => {
   const data = useStore((s) => s.data);
   const uploadAndAnalyze = useStore((s) => s.uploadAndAnalyze);
   const isUploading = useStore((s) => s.isUploading);
-  const uploadProgress = useStore((s) => s.uploadProgress);
-  const processingProgress = useStore((s) => s.processingProgress);
   const processingStage = useStore((s) => s.processingStage);
   const pipelineStatus = useStore((s) => s.pipelineStatus);
   const activeVideoId = useStore((s) => s.activeVideoId);
@@ -25,6 +23,11 @@ const Dashboard = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const isPipelineActive = isUploading || pipelineStatus === 'processing';
+  const progressStateLabel = isUploading
+    ? 'UPLOADING'
+    : pipelineStatus === 'processing'
+      ? 'PIPELINE'
+      : 'READY';
 
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
@@ -120,37 +123,18 @@ const Dashboard = () => {
         </div>
 
         {(isUploading || pipelineStatus === 'processing' || pipelineStatus === 'completed') && (
-          <div className="mt-4 pt-4 border-t border-surface-200 space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className={isDark ? 'text-surface-400' : 'text-surface-600'}>Upload</span>
-                <span className={`font-medium ${isDark ? 'text-surface-300' : 'text-surface-700'}`}>{Math.round(uploadProgress)}%</span>
-              </div>
-              <div className={`h-1.5 w-full rounded-full overflow-hidden ${isDark ? 'bg-surface-800' : 'bg-surface-100'}`}>
-                <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, uploadProgress))}%` }} />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className={isDark ? 'text-surface-400' : 'text-surface-600'}>Pipeline</span>
-                <span className={`font-medium ${isDark ? 'text-surface-300' : 'text-surface-700'}`}>{Math.round(processingProgress)}%</span>
-              </div>
-              <div className={`h-1.5 w-full rounded-full overflow-hidden ${isDark ? 'bg-surface-800' : 'bg-surface-100'}`}>
-                <div className="h-full bg-brand-500 rounded-full transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, processingProgress))}%` }} />
-              </div>
-              {processingStage && (
-                <p className={`text-xs mt-1 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
+          <div className="mt-4 pt-4 border-t border-surface-200">
+            <div className={`flex flex-col items-center justify-center text-center gap-2 ${isDark ? 'text-white' : 'text-surface-900'}`}>
+              <AnimatedDownload
+                className="max-w-full md:translate-x-10"
+                isAnimating={isPipelineActive}
+                statusText={progressStateLabel}
+              />
+              {processingStage && pipelineStatus === 'processing' && (
+                <p className={`text-xs ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
                   {processingStage}
                 </p>
               )}
-            </div>
-
-            <div className={`pt-2 ${isDark ? 'text-white' : 'text-surface-900'}`}>
-              <AnimatedDownload
-                className="max-w-full"
-                isAnimating={isPipelineActive}
-              />
             </div>
           </div>
         )}

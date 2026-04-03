@@ -12,8 +12,34 @@ from urllib import request as url_request
 from utils.file_utils import RESULTS_DIR
 from services.storage_service import load_analysis
 
-GEMINI_CHAT_MODEL = os.getenv("GEMINI_CHAT_MODEL", os.getenv("GEMINI_MODEL", "gemini-1.5-flash"))
+GROQ_CHAT_MODEL = os.getenv("GROQ_CHAT_MODEL", "llama-3.3-70b-versatile")
 logger = logging.getLogger(__name__)
+
+
+def _resolve_groq_api_key() -> str:
+    # First prefer process env (works in deployed environments).
+    env_key = os.getenv("GROQ_API_KEY", "").strip()
+    if env_key:
+        return env_key
+
+    # Fallback to backend/.env for local dev where server may have started
+    # before env was exported in the shell.
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.is_file():
+        return ""
+
+    try:
+        for raw in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            if key.strip() == "GROQ_API_KEY":
+                return value.strip().strip('"').strip("'")
+    except OSError:
+        return ""
+
+    return ""
 
 
 def _find_latest_video_id() -> str | None:
@@ -93,18 +119,13 @@ def _reason_from_error(exc: Exception) -> str:
     return "unknown_error"
 
 
-def _call_gemini_chat(question: str, analysis: dict, video_id: str) -> tuple[str | None, str | None]:
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+def _call_groq_chat(question: str, analysis: dict, video_id: str) -> tuple[str | None, str | None]:
+    api_key = _resolve_groq_api_key()
     if not api_key:
         return None, "no_api_key"
 
     prompt = _build_prompt(question, analysis, video_id)
-    model_candidates = [
-        GEMINI_CHAT_MODEL,
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-2.0-flash",
-    ]
+    model_candidates = [GROQ_CHAT_MODEL, "llama-3.1-8b-instant", "llama3-70b-8192"]
 
     seen = set()
     ordered_models = []
@@ -114,44 +135,48 @@ def _call_gemini_chat(question: str, analysis: dict, video_id: str) -> tuple[str
             ordered_models.append(name)
             seen.add(name)
 
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.2,
-            "maxOutputTokens": 600,
-        },
-    }
-
+    last_reason = "groq_failed"
     for model_name in ordered_models:
-        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        endpoint = "https://api.groq.com/openai/v1/chat/completions"
+        body = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": "You are a concise video engagement analyst."},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 600,
+        }
         req = url_request.Request(
             endpoint,
             data=json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+                "Accept": "application/json",
+                "User-Agent": "Mozilla/5.0",
+            },
             method="POST",
         )
 
         try:
-            logger.info("Using Gemini chat model=%s for analysis QA", model_name)
+            logger.info("Using Groq chat model=%s for analysis QA", model_name)
             with url_request.urlopen(req, timeout=15) as resp:
                 raw = resp.read().decode("utf-8")
             payload = json.loads(raw)
-            candidates = payload.get("candidates", [])
-            if not candidates:
+            choices = payload.get("choices", [])
+            if not choices:
                 continue
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if not parts:
-                continue
-            text = str(parts[0].get("text", "")).strip()
+            text = str(choices[0].get("message", {}).get("content", "")).strip()
             if text:
-                logger.info("Gemini chat answer generated successfully (model=%s)", model_name)
-                return text, "gemini_ok"
+                logger.info("Groq chat answer generated successfully (model=%s)", model_name)
+                return text, "groq_ok"
         except (url_error.URLError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
-            logger.warning("Gemini chat failed for model=%s: %s", model_name, exc)
+            logger.warning("Groq chat failed for model=%s: %s", model_name, exc)
             last_reason = _reason_from_error(exc)
             continue
 
-    return None, locals().get("last_reason", "gemini_failed")
+    return None, last_reason
 
 
 async def answer_question(question: str, video_id: str | None = None) -> tuple[str, str, str, str]:
@@ -181,8 +206,8 @@ async def answer_question(question: str, video_id: str | None = None) -> tuple[s
             "analysis_not_found",
         )
 
-    gemini_answer, reason = _call_gemini_chat(question, analysis, selected_video_id)
-    if gemini_answer:
-        return gemini_answer, selected_video_id, "gemini", "gemini_ok"
+    groq_answer, reason = _call_groq_chat(question, analysis, selected_video_id)
+    if groq_answer:
+        return groq_answer, selected_video_id, "groq", "groq_ok"
 
-    return _fallback_answer(question, analysis, selected_video_id), selected_video_id, "fallback", (reason or "gemini_failed")
+    return _fallback_answer(question, analysis, selected_video_id), selected_video_id, "fallback", (reason or "groq_failed")

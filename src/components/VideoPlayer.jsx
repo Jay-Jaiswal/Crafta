@@ -31,7 +31,7 @@ const VideoPlayer = () => {
     ? (data.video_url.startsWith('http://') || data.video_url.startsWith('https://')
       ? data.video_url
       : `${API_BASE}${data.video_url.startsWith('/') ? '' : '/'}${data.video_url}`)
-    : '';
+    : null;
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -153,17 +153,23 @@ const VideoPlayer = () => {
 
       {/* Video Container */}
       <div className="relative aspect-video bg-black cursor-pointer" onClick={togglePlay}>
-        <video
-          ref={videoRef}
-          src={resolvedVideoUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-          className="w-full h-full object-contain"
-          playsInline
-          preload="metadata"
-          crossOrigin="anonymous"
-        />
+        {resolvedVideoUrl ? (
+          <video
+            ref={videoRef}
+            src={resolvedVideoUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onEnded={() => setIsPlaying(false)}
+            className="w-full h-full object-contain"
+            playsInline
+            preload="metadata"
+            crossOrigin="anonymous"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-xs text-white/70">
+            Video source unavailable
+          </div>
+        )}
 
         <AnimatePresence>
           {!isPlaying && (

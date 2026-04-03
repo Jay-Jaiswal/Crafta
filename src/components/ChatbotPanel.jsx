@@ -6,20 +6,20 @@ import useThemeStore from '../store/useThemeStore';
 import { askChatbot } from '../services/api';
 
 const reasonLabel = {
-  gemini_ok: 'Gemini response',
-  rate_limited: 'Gemini rate limited',
-  model_not_found: 'Gemini model not found',
-  auth_error: 'Gemini auth error',
-  timeout: 'Gemini timeout',
+  groq_ok: 'Groq response',
+  rate_limited: 'Groq rate limited',
+  model_not_found: 'Groq model not found',
+  auth_error: 'Groq auth error',
+  timeout: 'Groq timeout',
   network_error: 'Network error',
-  no_api_key: 'No Gemini API key',
+  no_api_key: 'No Groq API key',
   no_analysis: 'No analysis available',
   analysis_not_found: 'Analysis file missing',
-  gemini_failed: 'Gemini request failed',
+  groq_failed: 'Groq request failed',
 };
 
 const sourceStyles = {
-  gemini: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+  groq: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   fallback: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
   error: 'bg-red-500/10 text-red-500 border-red-500/20',
   system: 'bg-surface-100 text-surface-500 border-surface-200',
@@ -58,7 +58,7 @@ const ChatbotPanel = () => {
           role: 'assistant',
           text: result?.answer || 'No response generated.',
           source: result?.source || 'fallback',
-          sourceDetail: result?.source_detail || 'gemini_failed',
+          sourceDetail: result?.source_detail || 'groq_failed',
           videoId: result?.video_id || 'none',
         },
       ]);

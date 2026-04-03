@@ -1,0 +1,190 @@
+{
+  "video_id": "90e169fdeac8",
+  "timestamp": "2026-04-03T19:09:06.572273",
+  "features": {
+    "frame_count": 250,
+    "fps": 25.0,
+    "duration": 10.0,
+    "resolution": "320x180",
+    "motion_scores": [
+      0.0,
+      0.1936,
+      0.2069,
+      0.298,
+      0.3369,
+      0.1075,
+      0.3122,
+      0.2689,
+      0.0842,
+      0.0142
+    ],
+    "face_presence": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "audio_energy": [
+      0.2074,
+      0.16,
+      0.3153,
+      0.3748,
+      0.4144,
+      0.476,
+      0.4723,
+      0.4927,
+      0.5011,
+      0.5007
+    ],
+    "scene_changes": [
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0
+    ],
+    "color_variance": [
+      0.0,
+      0.2712,
+      0.1871,
+      0.3735,
+      0.3845,
+      0.1756,
+      0.3645,
+      0.26,
+      0.2527,
+      0.016
+    ],
+    "frame_signals": [
+      {
+        "timestamp": 0.0,
+        "frame_id": 0,
+        "scene_change": false,
+        "motion_score": 0.0,
+        "brightness_score": 0.5047,
+        "edge_density": 0.0499,
+        "human_count": 0,
+        "pacing_score": 0.4,
+        "visual_variation_score": 0.0,
+        "attention_drop_risk": 0.0025
+      },
+      {
+        "timestamp": 1.0,
+        "frame_id": 25,
+        "scene_change": true,
+        "motion_score": 0.1936,
+        "brightness_score": 0.4766,
+        "edge_density": 0.0291,
+        "human_count": 0,
+        "pacing_score": 0.32,
+        "visual_variation_score": 0.2712,
+        "attention_drop_risk": 0.4386
+      },
+      {
+        "timestamp": 2.0,
+        "frame_id": 50,
+        "scene_change": true,
+        "motion_score": 0.2069,
+        "brightness_score": 0.4134,
+        "edge_density": 0.0496,
+        "human_count": 0,
+        "pacing_score": 0.64,
+        "visual_variation_score": 0.1871,
+        "attention_drop_risk": 0.4511
+      },
+      {
+        "timestamp": 3.0,
+        "frame_id": 75,
+        "scene_change": true,
+        "motion_score": 0.298,
+        "brightness_score": 0.485,
+        "edge_density": 0.0597,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.3735,
+        "attention_drop_risk": 0.4871
+      },
+      {
+        "timestamp": 4.0,
+        "frame_id": 100,
+        "scene_change": true,
+        "motion_score": 0.3369,
+        "brightness_score": 0.735,
+        "edge_density": 0.0334,
+        "human_count": 0,
+        "pacing_score": 0.88,
+        "visual_variation_score": 0.3845,
+        "attention_drop_risk": 0.5033
+      },
+      {
+        "timestamp": 5.0,
+        "frame_id": 125,
+        "scene_change": true,
+        "motion_score": 0.1075,
+        "brightness_score": 0.7204,
+        "edge_density": 0.0473,
+        "human_count": 0,
+        "pacing_score": 1.0,
+        "visual_variation_score": 0.1756,
+        "attention_drop_risk": 0.4007
+      },
+      {
+        "timestamp": 6.0,
+        "frame_id": 150,
+        "scene_change": true,
+        "motion_score": 0.3122,
+        "brightness_score": 0.4919,
+        "edge_density": 0.0405,
+        "human_count": 0,
+        "pacing_score": 1.0,
+        "visual_variation_score": 0.3645,
+        "attention_drop_risk": 0.4925
+      },
+      {
+        "timestamp": 7.0,
+        "frame_id": 175,
+        "scene_change": true,
+        "motion_score": 0.2689,
+        "brightness_score": 0.426,
+        "edge_density": 0.0777,
+        "human_count": 0,
+        "pacing_score": 1.0,
+        "visual_variation_score": 0.26,
+        "attention_drop_risk": 0.4785
+      },
+      {
+        "timestamp": 8.0,
+        "frame_id": 200,
+        "scene_change": true,
+        "motion_score": 0.0842,
+        "brightness_score": 0.4849,
+        "edge_density": 0.0929,
+        "human_count": 0,
+        "pacing_score": 1.0,
+        "visual_variation_score": 0.2527,
+        "attention_drop_risk": 0.3926
+      },
+      {
+        "timestamp": 9.0,
+        "frame_id": 225,
+        "scene_change": false,
+        "motion_score": 0.0142,
+        "brightness_score": 0.4859,
+        "edge_density": 0.0921,
+        "human_count": 0,
+        "pacing_score": 1.0,
+        "visual_variation_score": 0.016,
+        "attention_drop_risk": 0.011
+      }
+    ]
+  }
+}

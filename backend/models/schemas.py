@@ -192,5 +192,5 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     video_id: str
-    source: str = Field(..., description="gemini or fallback")
+    source: str = Field(..., description="groq or fallback")
     source_detail: Optional[str] = Field(None, description="Extra source context such as rate_limited, model_not_found, no_api_key")

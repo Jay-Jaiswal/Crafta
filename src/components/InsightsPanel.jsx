@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import useStore from '../store/useStore';
+import useThemeStore from '../store/useThemeStore';
 
 const iconMap = {
   motion: Move,
@@ -21,22 +22,22 @@ const iconMap = {
 
 const severityColors = {
   high: {
-    bg: 'bg-danger-soft/10',
-    border: 'border-danger-soft/20',
-    text: 'text-danger-soft',
-    dot: 'bg-danger-soft',
+    bg: 'bg-red-500/10',
+    border: 'border-red-500/20',
+    text: 'text-red-500',
+    dot: 'bg-red-500',
   },
   medium: {
-    bg: 'bg-warning/10',
-    border: 'border-warning/20',
-    text: 'text-warning',
-    dot: 'bg-warning',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    text: 'text-amber-500',
+    dot: 'bg-amber-500',
   },
   low: {
-    bg: 'bg-accent-blue/10',
-    border: 'border-accent-blue/20',
-    text: 'text-accent-blue',
-    dot: 'bg-accent-blue',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    text: 'text-blue-500',
+    dot: 'bg-blue-500',
   },
 };
 
@@ -45,6 +46,8 @@ const InsightsPanel = () => {
   const activeInsight = useStore((s) => s.activeInsight);
   const setActiveInsight = useStore((s) => s.setActiveInsight);
   const currentTime = useStore((s) => s.currentTime);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const insights = data?.insights || [];
 
@@ -54,26 +57,24 @@ const InsightsPanel = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
-      className="glass-card overflow-hidden flex flex-col"
+      transition={{ duration: 0.4, delay: 0.15 }}
+      className="card overflow-hidden flex flex-col"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]">
+      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'border-[#252937]' : 'border-[#EEF0F4]'}`}>
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse" />
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Insights Engine
+          <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+          <span className={`text-[11px] font-medium ${isDark ? 'text-surface-400' : 'text-surface-600'}`}>
+            Insights
           </span>
         </div>
-        <span className="text-[10px] text-slate-600 bg-dark-600 px-2 py-0.5 rounded-full">
-          {insights.length} detected
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${isDark ? 'bg-surface-800 text-surface-400' : 'bg-surface-100 text-surface-500'}`}>
+          {insights.length}
         </span>
       </div>
 
-      {/* Insights List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[420px]">
+      <div className="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[400px]">
         <AnimatePresence mode="popLayout">
           {insights.map((insight, i) => {
             const Icon = iconMap[insight.icon] || Zap;
@@ -85,28 +86,26 @@ const InsightsPanel = () => {
               <motion.div
                 key={insight.id}
                 layout
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.04 }}
                 onClick={() => handleClick(insight)}
-                className={`relative p-3 rounded-xl cursor-pointer transition-all duration-300 border ${
+                className={`relative p-3 rounded-lg cursor-pointer transition-all duration-200 border ${
                   isActive
-                    ? `${colors.bg} ${colors.border} pulse-glow`
+                    ? `${colors.bg} ${colors.border}`
                     : isLive
-                    ? `bg-dark-700/50 ${colors.border}`
-                    : 'bg-dark-800/30 border-white/[0.03] hover:bg-dark-700/40 hover:border-white/[0.06]'
+                    ? `${isDark ? 'bg-surface-800/50' : 'bg-surface-50'} ${colors.border}`
+                    : `${isDark ? 'bg-surface-800/30 border-transparent hover:bg-surface-800/50' : 'bg-white border-transparent hover:bg-surface-50'}`
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  {/* Icon */}
-                  <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${colors.bg}`}>
-                    <Icon className={`w-4 h-4 ${colors.text}`} />
+                <div className="flex items-start gap-2.5">
+                  <div className={`shrink-0 w-7 h-7 rounded-md flex items-center justify-center ${colors.bg}`}>
+                    <Icon className={`w-3.5 h-3.5 ${colors.text}`} />
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h4 className="text-sm font-medium text-white truncate">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <h4 className={`text-xs font-medium truncate ${isDark ? 'text-surface-200' : 'text-surface-800'}`}>
                         {insight.title}
                       </h4>
                       {isLive && (
@@ -117,26 +116,24 @@ const InsightsPanel = () => {
                         />
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed mb-1.5 line-clamp-2">
+                    <p className={`text-[11px] leading-relaxed mb-1.5 line-clamp-2 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
                       {insight.description}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-600 bg-dark-600/60 px-1.5 py-0.5 rounded">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${isDark ? 'bg-surface-700 text-surface-400' : 'bg-surface-100 text-surface-500'}`}>
                         {insight.timeRange}
                       </span>
-                      <span className={`text-[10px] font-semibold ${colors.text}`}>
-                        {insight.confidence}% confidence
+                      <span className={`text-[10px] font-medium ${colors.text}`}>
+                        {insight.confidence}%
                       </span>
                     </div>
                   </div>
 
-                  {/* Arrow */}
-                  <ChevronRight className={`w-4 h-4 shrink-0 mt-1 transition-colors ${
-                    isActive ? colors.text : 'text-slate-700'
+                  <ChevronRight className={`w-3.5 h-3.5 shrink-0 mt-0.5 transition-colors ${
+                    isActive ? colors.text : isDark ? 'text-surface-700' : 'text-surface-300'
                   }`} />
                 </div>
 
-                {/* Active expanded details */}
                 <AnimatePresence>
                   {isActive && (
                     <motion.div
@@ -146,11 +143,9 @@ const InsightsPanel = () => {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-3 pt-3 border-t border-white/[0.05]">
-                        <p className="text-xs text-slate-400 leading-relaxed">
-                          This insight was detected using multi-modal analysis of visual features,
-                          audio energy levels, and viewer behavior patterns. The confidence score
-                          reflects the model's certainty based on training data.
+                      <div className={`mt-2.5 pt-2.5 border-t ${isDark ? 'border-white/[0.05]' : 'border-surface-200'}`}>
+                        <p className={`text-xs leading-relaxed ${isDark ? 'text-surface-400' : 'text-surface-500'}`}>
+                          Detected using multi-modal analysis of visual features, audio energy, and viewer behavior patterns.
                         </p>
                       </div>
                     </motion.div>
@@ -160,6 +155,12 @@ const InsightsPanel = () => {
             );
           })}
         </AnimatePresence>
+
+        {insights.length === 0 && (
+          <div className={`text-center py-8 ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
+            <p className="text-xs">No insights detected</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -21,6 +21,13 @@
       "feedback": "accurate",
       "comment": null,
       "recorded_at": "2026-04-03T10:34:11.164084"
+    },
+    {
+      "suggestion_id": 1,
+      "timestamp": null,
+      "feedback": "accurate",
+      "comment": null,
+      "recorded_at": "2026-04-03T17:15:34.399918"
     }
   ]
 }

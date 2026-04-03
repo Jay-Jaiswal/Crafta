@@ -2,6 +2,7 @@ import { useRef, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Maximize2, SkipBack, SkipForward } from 'lucide-react';
 import useStore from '../store/useStore';
+import useThemeStore from '../store/useThemeStore';
 import Heatmap from './Heatmap';
 
 const API_BASE = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/$/, '');
@@ -21,6 +22,8 @@ const VideoPlayer = () => {
   const getSegmentAtTime = useStore((s) => s.getSegmentAtTime);
 
   const [isMuted, setIsMuted] = useState(false);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const duration = data?.video_duration || 60;
   const previewRows = data?.pipeline_preview?.slice(0, 5) || [];
@@ -64,7 +67,6 @@ const VideoPlayer = () => {
     }
   }, [setCurrentTime]);
 
-  // Sync with external seek (from insights/suggestions clicking)
   useEffect(() => {
     if (highlightedSegment && videoRef.current) {
       const video = videoRef.current;
@@ -78,7 +80,7 @@ const VideoPlayer = () => {
     const video = videoRef.current;
     if (video) {
       video.muted = !video.muted;
-      setIsMuted(!isMuted);
+      setIsMuted(!video.muted);
     }
   };
 
@@ -108,49 +110,49 @@ const VideoPlayer = () => {
   const currentScore = getScoreAtTime(currentTime);
   const currentSegment = getSegmentAtTime(currentTime);
 
-  const scoreColor = currentScore >= 70 ? 'text-success' : currentScore >= 45 ? 'text-warning' : 'text-danger-soft';
+  const scoreColor = currentScore >= 70 ? 'text-emerald-500' : currentScore >= 45 ? 'text-amber-500' : 'text-red-500';
 
   return (
     <motion.div
       ref={containerRef}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-      className="glass-card overflow-hidden group"
+      transition={{ duration: 0.4 }}
+      className="card overflow-hidden"
     >
-      {/* Video Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04]">
+      {/* Header */}
+      <div className={`flex items-center justify-between px-4 py-2.5 border-b ${isDark ? 'border-[#252937]' : 'border-[#EEF0F4]'}`}>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-danger-soft animate-pulse" />
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Video Intelligence
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className={`text-[11px] font-medium ${isDark ? 'text-surface-400' : 'text-surface-600'}`}>
+            Video Player
           </span>
         </div>
         <div className="flex items-center gap-2">
           {currentSegment && (
             <motion.span
               key={currentSegment.label}
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+              className={`text-[10px] font-medium px-2 py-0.5 rounded-md ${
                 currentSegment.type === 'high'
-                  ? 'bg-success/10 text-success border border-success/20'
+                  ? isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
                   : currentSegment.type === 'low'
-                  ? 'bg-danger-soft/10 text-danger-soft border border-danger-soft/20'
-                  : 'bg-warning/10 text-warning border border-warning/20'
+                  ? isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
+                  : isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'
               }`}
             >
               {currentSegment.label}
             </motion.span>
           )}
-          <span className={`text-sm font-bold ${scoreColor} tabular-nums`}>
+          <span className={`text-sm font-semibold tabular-nums ${scoreColor}`}>
             {Math.round(currentScore)}%
           </span>
         </div>
       </div>
 
       {/* Video Container */}
-      <div className="relative aspect-video bg-dark-900 cursor-pointer" onClick={togglePlay}>
+      <div className="relative aspect-video bg-black cursor-pointer" onClick={togglePlay}>
         <video
           ref={videoRef}
           src={resolvedVideoUrl}
@@ -163,7 +165,6 @@ const VideoPlayer = () => {
           crossOrigin="anonymous"
         />
 
-        {/* Play/Pause Overlay */}
         <AnimatePresence>
           {!isPlaying && (
             <motion.div
@@ -173,33 +174,27 @@ const VideoPlayer = () => {
               className="absolute inset-0 flex items-center justify-center bg-black/30"
             >
               <motion.div
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20"
+                className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20"
               >
-                <Play className="w-7 h-7 text-white ml-1" />
+                <Play className="w-6 h-6 text-white ml-0.5" />
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Current Score Badge */}
+        {/* Score Badge */}
         <div className="absolute top-3 right-3">
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className={`px-3 py-1.5 rounded-lg backdrop-blur-md border ${
-              currentScore >= 70
-                ? 'bg-success/10 border-success/30 text-success'
-                : currentScore >= 45
-                ? 'bg-warning/10 border-warning/30 text-warning'
-                : 'bg-danger-soft/10 border-danger-soft/30 text-danger-soft'
-            }`}
-          >
-            <span className="text-xs font-bold tabular-nums">
-              Attention: {Math.round(currentScore)}%
-            </span>
-          </motion.div>
+          <div className={`px-2.5 py-1 rounded-md backdrop-blur-sm border text-xs font-semibold tabular-nums ${
+            currentScore >= 70
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+              : currentScore >= 45
+              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+              : 'bg-red-500/10 border-red-500/20 text-red-400'
+          }`}>
+            {Math.round(currentScore)}%
+          </div>
         </div>
 
         {/* Drop Zone Indicators */}
@@ -208,13 +203,13 @@ const VideoPlayer = () => {
           return isActive ? (
             <motion.div
               key={drop.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute bottom-14 left-3 right-3"
+              className="absolute bottom-12 left-3 right-3"
             >
-              <div className="px-3 py-2 rounded-lg bg-danger-soft/10 backdrop-blur-md border border-danger-soft/20">
-                <p className="text-xs text-danger-soft font-medium">
-                  ⚠️ {drop.reason} ({drop.confidence}% confidence)
+              <div className="px-3 py-2 rounded-lg bg-red-500/10 backdrop-blur-sm border border-red-500/20">
+                <p className="text-xs text-red-400 font-medium">
+                  {drop.reason} ({drop.confidence}% confidence)
                 </p>
               </div>
             </motion.div>
@@ -234,64 +229,60 @@ const VideoPlayer = () => {
       </div>
 
       {/* Controls */}
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => skip(-5)} className="text-slate-400 hover:text-white transition-colors">
+      <div className="px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <button onClick={() => skip(-5)} className={`p-1 rounded transition-colors ${isDark ? 'text-surface-500 hover:text-surface-300' : 'text-surface-400 hover:text-surface-600'}`}>
             <SkipBack className="w-4 h-4" />
           </button>
           <button
             onClick={togglePlay}
-            className="w-8 h-8 rounded-full bg-accent-purple/20 flex items-center justify-center text-accent-purple hover:bg-accent-purple/30 transition-colors"
+            className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white hover:bg-brand-700 transition-colors"
           >
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
           </button>
-          <button onClick={() => skip(5)} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={() => skip(5)} className={`p-1 rounded transition-colors ${isDark ? 'text-surface-500 hover:text-surface-300' : 'text-surface-400 hover:text-surface-600'}`}>
             <SkipForward className="w-4 h-4" />
           </button>
 
-          <span className="text-xs text-slate-500 tabular-nums min-w-[70px]">
+          <span className={`text-xs tabular-nums min-w-[70px] ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
 
           <div className="flex-1" />
 
-          <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={toggleMute} className={`p-1 rounded transition-colors ${isDark ? 'text-surface-500 hover:text-surface-300' : 'text-surface-400 hover:text-surface-600'}`}>
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
-          <button onClick={toggleFullscreen} className="text-slate-400 hover:text-white transition-colors">
+          <button onClick={toggleFullscreen} className={`p-1 rounded transition-colors ${isDark ? 'text-surface-500 hover:text-surface-300' : 'text-surface-400 hover:text-surface-600'}`}>
             <Maximize2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Pipeline Preview Rows */}
-      <div className="px-4 pb-4">
-        <div className="rounded-xl border border-white/[0.06] bg-dark-800/40 overflow-hidden">
-          <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Pipeline Data Preview
-            </span>
-            <span className="text-[10px] text-slate-500">First 5 rows</span>
-          </div>
-          {previewRows.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-slate-500">
-              Upload and process a video to see frame-level rows.
+      {/* Pipeline Preview */}
+      {previewRows.length > 0 && (
+        <div className={`px-4 pb-4`}>
+          <div className={`rounded-lg border overflow-hidden ${isDark ? 'border-[#252937] bg-surface-800/50' : 'border-[#EEF0F4] bg-surface-50'}`}>
+            <div className={`px-3 py-2 border-b flex items-center justify-between ${isDark ? 'border-[#252937]' : 'border-[#EEF0F4]'}`}>
+              <span className={`text-[10px] font-medium ${isDark ? 'text-surface-400' : 'text-surface-600'}`}>
+                Pipeline Preview
+              </span>
+              <span className={`text-[10px] ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>First 5 rows</span>
             </div>
-          ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px] text-slate-300">
-                <thead className="text-slate-500 bg-dark-700/30">
+              <table className="w-full text-[10px]">
+                <thead className={isDark ? 'text-surface-500 bg-surface-800' : 'text-surface-400 bg-surface-100'}>
                   <tr>
-                    <th className="px-2 py-1.5 text-left">timestamp</th>
-                    <th className="px-2 py-1.5 text-left">frame_id</th>
-                    <th className="px-2 py-1.5 text-left">scene_change</th>
-                    <th className="px-2 py-1.5 text-left">motion_score</th>
-                    <th className="px-2 py-1.5 text-left">risk</th>
+                    <th className="px-2 py-1.5 text-left font-medium">timestamp</th>
+                    <th className="px-2 py-1.5 text-left font-medium">frame_id</th>
+                    <th className="px-2 py-1.5 text-left font-medium">scene_change</th>
+                    <th className="px-2 py-1.5 text-left font-medium">motion</th>
+                    <th className="px-2 py-1.5 text-left font-medium">risk</th>
                   </tr>
                 </thead>
                 <tbody>
                   {previewRows.map((row) => (
-                    <tr key={`${row.frame_id}-${row.timestamp}`} className="border-t border-white/[0.04]">
+                    <tr key={`${row.frame_id}-${row.timestamp}`} className={`border-t ${isDark ? 'border-[#252937] text-surface-300' : 'border-[#EEF0F4] text-surface-600'}`}>
                       <td className="px-2 py-1.5 tabular-nums">{row.timestamp}</td>
                       <td className="px-2 py-1.5 tabular-nums">{row.frame_id}</td>
                       <td className="px-2 py-1.5">{String(row.scene_change)}</td>
@@ -302,9 +293,9 @@ const VideoPlayer = () => {
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 };

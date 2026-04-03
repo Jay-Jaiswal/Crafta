@@ -11,6 +11,7 @@ Example curl:
 """
 
 import logging
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -23,11 +24,55 @@ from models.schemas import (
 )
 from services.pipeline_service import get_progress
 from services.storage_service import load_analysis
-from utils.file_utils import video_exists, analysis_exists
+from utils.file_utils import video_exists, analysis_exists, UPLOADS_DIR
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Analysis"])
+
+
+@router.get(
+    "/history",
+    summary="List uploaded videos",
+    description="Returns uploaded video files discovered in backend/uploads for the History page.",
+)
+async def get_history_items():
+    items = []
+
+    if not UPLOADS_DIR.exists():
+        return {"items": items}
+
+    for video_dir in sorted(UPLOADS_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
+        if not video_dir.is_dir():
+            continue
+
+        video_files = [p for p in video_dir.iterdir() if p.is_file()]
+        if not video_files:
+            continue
+
+        # Prefer common saved filename first, else pick the newest file in the folder.
+        selected_file = next((f for f in video_files if f.stem.lower() == "video"), None)
+        if selected_file is None:
+            selected_file = max(video_files, key=lambda f: f.stat().st_mtime)
+
+        modified_at = datetime.fromtimestamp(selected_file.stat().st_mtime)
+        status = "completed" if analysis_exists(video_dir.name) else "processing"
+
+        items.append(
+            {
+                "id": video_dir.name,
+                "video_id": video_dir.name,
+                "name": selected_file.name,
+                "status": status,
+                "date": modified_at.strftime("%b %d, %Y"),
+                "timestamp": modified_at.isoformat(),
+                "duration": "--",
+                "score": 0,
+                "drops": 0,
+            }
+        )
+
+    return {"items": items}
 
 
 # ─── Dummy data for fallback ─────────────────────────────────────────────────

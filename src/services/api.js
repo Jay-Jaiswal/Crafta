@@ -127,4 +127,17 @@ export const askChatbot = async (question, videoId = null) => {
   return response.data;
 };
 
+/**
+ * Fetch uploaded video history from backend/uploads.
+ */
+export const getHistoryItems = async () => {
+  try {
+    const response = await api.get('/history');
+    return response.data?.items || [];
+  } catch (error) {
+    console.error('Failed to fetch history items:', error);
+    return [];
+  }
+};
+
 export default api;

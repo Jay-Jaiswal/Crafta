@@ -1,26 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Play, Trash2, Search, Filter, FileVideo, CheckCircle2, XCircle, LoaderCircle } from 'lucide-react';
 import useThemeStore from '../store/useThemeStore';
-
-const mockHistory = [
-  { id: 'vid_001', name: 'Product_Launch_v2.mp4', date: 'Apr 2, 2026', duration: '4:32', score: 78, status: 'completed', drops: 2 },
-  { id: 'vid_002', name: 'Tutorial_Intro.mov', date: 'Apr 1, 2026', duration: '2:15', score: 65, status: 'completed', drops: 3 },
-  { id: 'vid_003', name: 'Ad_Campaign_Q1.avi', date: 'Mar 30, 2026', duration: '0:30', score: 88, status: 'completed', drops: 0 },
-  { id: 'vid_004', name: 'Webinar_Recording.mkv', date: 'Mar 28, 2026', duration: '45:12', score: 42, status: 'completed', drops: 8 },
-  { id: 'vid_005', name: 'Social_Media_Cut.mp4', date: 'Mar 25, 2026', duration: '0:15', score: 92, status: 'completed', drops: 0 },
-  { id: 'vid_006', name: 'Behind_Scenes.webm', date: 'Mar 22, 2026', duration: '8:45', score: 55, status: 'completed', drops: 4 },
-  { id: 'vid_007', name: 'Demo_Reel_Final.mp4', date: 'Mar 20, 2026', duration: '3:20', score: 0, status: 'failed', drops: 0 },
-  { id: 'vid_008', name: 'Onboarding_Flow.mp4', date: 'Mar 18, 2026', duration: '6:10', score: 71, status: 'completed', drops: 1 },
-];
+import { getHistoryItems } from '../services/api';
 
 const History = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [historyItems, setHistoryItems] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  const filtered = mockHistory.filter((item) => {
+  useEffect(() => {
+    const loadHistory = async () => {
+      setIsLoadingHistory(true);
+      const items = await getHistoryItems();
+      setHistoryItems(items);
+      setIsLoadingHistory(false);
+    };
+
+    loadHistory();
+  }, []);
+
+  const filtered = historyItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === 'all' || item.status === filter;
     return matchesSearch && matchesFilter;
@@ -92,7 +95,14 @@ const History = () => {
 
       {/* History List */}
       <div className="space-y-2">
-        {filtered.map((item, i) => (
+        {isLoadingHistory && (
+          <div className="card p-12 text-center">
+            <LoaderCircle className={`w-10 h-10 mx-auto mb-3 animate-spin ${isDark ? 'text-surface-700' : 'text-surface-300'}`} />
+            <p className={`text-sm font-medium ${isDark ? 'text-surface-400' : 'text-surface-500'}`}>Loading uploads...</p>
+          </div>
+        )}
+
+        {!isLoadingHistory && filtered.map((item, i) => (
           <motion.div
             key={item.id}
             initial={{ opacity: 0, y: 8 }}
@@ -123,7 +133,7 @@ const History = () => {
             </div>
 
             {/* Score */}
-            {item.status === 'completed' && (
+            {item.status === 'completed' && item.score > 0 && (
               <div className="text-right shrink-0 mr-2">
                 <p className={`text-lg font-semibold ${getScoreColor(item.score)}`}>{item.score}%</p>
                 <p className={`text-[10px] ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>Score</p>
@@ -146,7 +156,7 @@ const History = () => {
           </motion.div>
         ))}
 
-        {filtered.length === 0 && (
+        {!isLoadingHistory && filtered.length === 0 && (
           <div className="card p-12 text-center">
             <Clock className={`w-10 h-10 mx-auto mb-3 ${isDark ? 'text-surface-700' : 'text-surface-300'}`} />
             <p className={`text-sm font-medium ${isDark ? 'text-surface-400' : 'text-surface-500'}`}>No videos found</p>

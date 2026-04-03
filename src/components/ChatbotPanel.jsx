@@ -25,6 +25,25 @@ const sourceStyles = {
   system: 'bg-surface-100 text-surface-500 border-surface-200',
 };
 
+const promptSuggestions = [
+  {
+    text: 'How can I improve the first 10 seconds?',
+    keywords: ['improve', 'first', '10', 'seconds', 'hook', 'intro', 'opening'],
+  },
+  {
+    text: 'Why did people drop off at 25s?',
+    keywords: ['drop', 'dropoff', 'drop-off', '25', 'seconds', 'retention', 'leave'],
+  },
+  {
+    text: "What is the best part of my video?",
+    keywords: ['best', 'part', 'strong', 'high', 'engagement', 'segment'],
+  },
+  {
+    text: 'How do I fix the audio issue?',
+    keywords: ['audio', 'sound', 'voice', 'music', 'noise', 'issue'],
+  },
+];
+
 const ChatbotPanel = () => {
   const activeVideoId = useStore((s) => s.activeVideoId);
   const data = useStore((s) => s.data);
@@ -41,6 +60,17 @@ const ChatbotPanel = () => {
       sourceDetail: 'ready',
     },
   ]);
+
+  const normalizedQuestion = question.trim().toLowerCase();
+  const activeSuggestions = normalizedQuestion
+    ? promptSuggestions.filter((item) => {
+        const textMatch = item.text.toLowerCase().includes(normalizedQuestion);
+        const keywordMatch = item.keywords.some((kw) =>
+          normalizedQuestion.includes(kw) || kw.includes(normalizedQuestion)
+        );
+        return textMatch || keywordMatch;
+      })
+    : promptSuggestions;
 
   const handleAsk = async () => {
     const trimmed = question.trim();
@@ -142,6 +172,25 @@ const ChatbotPanel = () => {
             </div>
           ))}
         </div>
+
+        {activeSuggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {activeSuggestions.map((item) => (
+              <button
+                key={item.text}
+                type="button"
+                onClick={() => setQuestion(item.text)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  isDark
+                    ? 'bg-surface-800/70 border-surface-700 text-surface-300 hover:bg-surface-700'
+                    : 'bg-white border-surface-200 text-surface-600 hover:bg-surface-50'
+                }`}
+              >
+                {item.text}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-end gap-2">
           <textarea

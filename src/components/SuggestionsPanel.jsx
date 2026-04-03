@@ -20,7 +20,10 @@ const SuggestionsPanel = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
-  const suggestions = data?.suggestions || [];
+  const suggestions = (data?.suggestions || []).map((item) => ({
+    ...item,
+    jumpTo: item.jumpTo ?? item.jump_to ?? 0,
+  }));
 
   const handleFeedback = async (id, isAccurate) => {
     recordFeedback(id, isAccurate);

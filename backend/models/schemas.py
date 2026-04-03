@@ -194,3 +194,7 @@ class ChatResponse(BaseModel):
     video_id: str
     source: str = Field(..., description="gemini or fallback")
     source_detail: Optional[str] = Field(None, description="Extra source context such as rate_limited, model_not_found, no_api_key")
+    analysis_context: Optional[dict[str, Any]] = Field(
+        None,
+        description="Structured context from analysis JSON including insights, suggestions, and what-if.",
+    )

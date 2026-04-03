@@ -15,7 +15,7 @@ router = APIRouter(tags=["Chat"])
     description="Answer user questions grounded in saved analysis JSON for a selected or latest video.",
 )
 async def chat(request: ChatRequest):
-    answer, resolved_video_id, source, source_detail = await answer_question(
+    answer, resolved_video_id, source, source_detail, analysis_context = await answer_question(
         question=request.question,
         video_id=request.video_id,
     )
@@ -24,4 +24,5 @@ async def chat(request: ChatRequest):
         video_id=resolved_video_id,
         source=source,
         source_detail=source_detail,
+        analysis_context=analysis_context,
     )

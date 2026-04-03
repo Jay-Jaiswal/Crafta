@@ -49,7 +49,10 @@ const InsightsPanel = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
-  const insights = data?.insights || [];
+  const insights = (data?.insights || []).map((item) => ({
+    ...item,
+    timeRange: item.timeRange ?? item.time_range ?? `${Math.floor(item.start || 0)}s - ${Math.floor(item.end || 0)}s`,
+  }));
 
   const handleClick = (insight) => {
     setActiveInsight(insight);

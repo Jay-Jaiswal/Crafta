@@ -53,6 +53,7 @@ const createAssistantMessage = (text, source = 'system', sourceDetail = 'ready')
   text,
   source,
   sourceDetail,
+  analysisContext: null,
 });
 
 const ChatbotPanel = () => {
@@ -103,10 +104,14 @@ const ChatbotPanel = () => {
       const answer = result?.answer || 'No response generated.';
       const source = result?.source || 'fallback';
       const sourceDetail = result?.source_detail || 'fallback';
+      const analysisContext = result?.analysis_context || null;
 
       setMessages((prev) => [
         ...prev,
-        createAssistantMessage(answer, source, sourceDetail),
+        {
+          ...createAssistantMessage(answer, source, sourceDetail),
+          analysisContext,
+        },
       ]);
     } catch (error) {
       const detail = error?.response?.data?.detail || error?.message || 'Unknown error';
@@ -203,6 +208,36 @@ const ChatbotPanel = () => {
                     <span className={`text-xs ${isDark ? 'text-surface-600' : 'text-surface-400'}`}>
                       {SOURCE_DETAIL_LABELS[message.sourceDetail] || message.sourceDetail}
                     </span>
+                  )}
+                </div>
+              )}
+
+              {message.role === 'assistant' && message.analysisContext && (
+                <div className={`mt-3 rounded-lg border p-3 space-y-2 ${isDark ? 'border-surface-700 bg-surface-900/40 text-surface-400' : 'border-surface-200 bg-white text-surface-600'}`}>
+                  {Array.isArray(message.analysisContext?.insights) && message.analysisContext.insights.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold">Top Insight</p>
+                      <p className="text-xs leading-relaxed">{message.analysisContext.insights[0]?.title || 'Insight available'}</p>
+                    </div>
+                  )}
+
+                  {Array.isArray(message.analysisContext?.suggestions) && message.analysisContext.suggestions.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold">Top Suggestion</p>
+                      <p className="text-xs leading-relaxed">{message.analysisContext.suggestions[0]?.text || 'Suggestion available'}</p>
+                    </div>
+                  )}
+
+                  {message.analysisContext?.what_if?.improvement !== null && message.analysisContext?.what_if?.improvement !== undefined && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold">What-if</p>
+                      <p className="text-xs leading-relaxed">
+                        Improvement: +{message.analysisContext.what_if.improvement}%
+                        {message.analysisContext?.what_if?.improved_score !== undefined && message.analysisContext?.what_if?.improved_score !== null
+                          ? ` (to ${message.analysisContext.what_if.improved_score}%)`
+                          : ''}
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

@@ -27,8 +27,9 @@ from routes import upload, analysis, feedback, chat
 from services.pipeline_service import subscribe_ws, unsubscribe_ws, get_progress
 from utils.file_utils import ensure_directories, UPLOADS_DIR
 
-# Load backend environment variables from backend/.env
-load_dotenv(Path(__file__).resolve().parent / ".env")
+# Load backend environment variables from backend/.env.
+# override=True ensures stale OS/user-level env values do not shadow the active project key.
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 

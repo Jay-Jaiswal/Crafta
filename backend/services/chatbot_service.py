@@ -63,6 +63,7 @@ def _build_prompt(question: str, analysis: dict, video_id: str) -> str:
         "drops": analysis.get("drops", [])[:5],
         "insights": analysis.get("insights", [])[:8],
         "suggestions": analysis.get("suggestions", [])[:8],
+        "what_if": analysis.get("what_if") or analysis.get("whatIf"),
         "attention_scores": analysis.get("attention_scores", [])[:30],
     }
 
@@ -104,6 +105,54 @@ def _extract_http_error_message(exc: url_error.HTTPError) -> str:
         return str(msg or body)
     except Exception:
         return ""
+
+
+def _build_analysis_context(analysis: dict) -> dict:
+    insights = analysis.get("insights", [])
+    suggestions = analysis.get("suggestions", [])
+    what_if = analysis.get("what_if") or analysis.get("whatIf") or {}
+
+    normalized_insights = [
+        {
+            "id": item.get("id"),
+            "title": item.get("title"),
+            "description": item.get("description"),
+            "time_range": item.get("time_range") or item.get("timeRange"),
+            "start": item.get("start"),
+            "end": item.get("end"),
+            "severity": item.get("severity"),
+            "confidence": item.get("confidence"),
+        }
+        for item in insights[:5]
+    ]
+
+    normalized_suggestions = [
+        {
+            "id": item.get("id"),
+            "text": item.get("text"),
+            "tag": item.get("tag"),
+            "impact": item.get("impact"),
+            "confidence": item.get("confidence"),
+            "jump_to": item.get("jump_to") if item.get("jump_to") is not None else item.get("jumpTo"),
+        }
+        for item in suggestions[:5]
+    ]
+
+    normalized_what_if = {
+        "original_score": what_if.get("original_score") if what_if.get("original_score") is not None else what_if.get("originalScore"),
+        "improved_score": what_if.get("improved_score") if what_if.get("improved_score") is not None else what_if.get("improvedScore"),
+        "improvement": what_if.get("improvement"),
+        "description": what_if.get("description"),
+        "trimmed_segments": what_if.get("trimmed_segments") if what_if.get("trimmed_segments") is not None else what_if.get("trimmedSegments", []),
+    }
+
+    return {
+        "summary": analysis.get("summary"),
+        "overall_score": analysis.get("overall_score"),
+        "insights": normalized_insights,
+        "suggestions": normalized_suggestions,
+        "what_if": normalized_what_if,
+    }
 
 
 def _call_gemini_chat(question: str, analysis: dict, video_id: str) -> tuple[str | None, str | None]:
@@ -210,6 +259,8 @@ def _call_groq_chat(question: str, analysis: dict, video_id: str) -> tuple[str |
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}",
+                "Accept": "application/json",
+                "User-Agent": "CraftaBackend/1.0 (+FastAPI)",
             },
             method="POST",
         )
@@ -236,6 +287,10 @@ def _call_groq_chat(question: str, analysis: dict, video_id: str) -> tuple[str |
             message = _extract_http_error_message(exc).lower()
             logger.warning("Groq chat failed for model=%s: HTTP %s %s", model_name, exc.code, message or exc)
 
+            if exc.code == 403 and "1010" in message:
+                last_reason = "edge_blocked_user_agent"
+                continue
+
             if exc.code == 429:
                 last_reason = "rate_limited"
                 continue
@@ -245,7 +300,7 @@ def _call_groq_chat(question: str, analysis: dict, video_id: str) -> tuple[str |
                 continue
 
             if exc.code in (401, 403):
-                return None, "auth_error"
+                return None, "auth_error_check_env_override_or_key_scope"
 
             last_reason = f"http_{exc.code}"
             continue
@@ -257,7 +312,7 @@ def _call_groq_chat(question: str, analysis: dict, video_id: str) -> tuple[str |
     return None, last_reason
 
 
-async def answer_question(question: str, video_id: str | None = None) -> tuple[str, str, str, str]:
+async def answer_question(question: str, video_id: str | None = None) -> tuple[str, str, str, str, dict | None]:
     selected_video_id = video_id or _find_latest_video_id()
     if not selected_video_id:
         return (
@@ -265,6 +320,7 @@ async def answer_question(question: str, video_id: str | None = None) -> tuple[s
             "none",
             "fallback",
             "no_analysis",
+            None,
         )
 
     analysis = await load_analysis(selected_video_id)
@@ -282,16 +338,19 @@ async def answer_question(question: str, video_id: str | None = None) -> tuple[s
             selected_video_id,
             "fallback",
             "analysis_not_found",
+            None,
         )
+
+    analysis_context = _build_analysis_context(analysis)
 
     groq_answer, groq_reason = _call_groq_chat(question, analysis, selected_video_id)
     if groq_answer:
-        return groq_answer, selected_video_id, "groq", "groq_ok"
+        return groq_answer, selected_video_id, "groq", "groq_ok", analysis_context
 
     gemini_answer, reason = _call_gemini_chat(question, analysis, selected_video_id)
     if gemini_answer:
         # Keep response source aligned with frontend badge expectations.
-        return gemini_answer, selected_video_id, "fallback", "gemini_ok"
+        return gemini_answer, selected_video_id, "fallback", "gemini_ok", analysis_context
 
     failure_reason = groq_reason or reason or "provider_failed"
-    return _fallback_answer(question, analysis, selected_video_id), selected_video_id, "fallback", failure_reason
+    return _fallback_answer(question, analysis, selected_video_id), selected_video_id, "fallback", failure_reason, analysis_context

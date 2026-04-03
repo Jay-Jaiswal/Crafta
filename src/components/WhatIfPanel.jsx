@@ -10,7 +10,16 @@ const WhatIfPanel = () => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
-  const whatIf = data?.whatIf;
+  const rawWhatIf = data?.whatIf || data?.what_if;
+  const whatIf = rawWhatIf
+    ? {
+        originalScore: rawWhatIf.originalScore ?? rawWhatIf.original_score,
+        improvedScore: rawWhatIf.improvedScore ?? rawWhatIf.improved_score,
+        improvement: rawWhatIf.improvement,
+        description: rawWhatIf.description,
+        trimmedSegments: rawWhatIf.trimmedSegments ?? rawWhatIf.trimmed_segments ?? [],
+      }
+    : null;
   if (!whatIf) return null;
 
   return (
@@ -41,7 +50,7 @@ const WhatIfPanel = () => {
         </button>
       </div>
 
-      <div className="p-4">
+      <div className="p-4.5">
         <AnimatePresence mode="wait">
           {whatIfEnabled ? (
             <motion.div
@@ -50,30 +59,31 @@ const WhatIfPanel = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2 }}
+              className="space-y-4"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`flex-1 p-2.5 rounded-lg text-center ${isDark ? 'bg-surface-800' : 'bg-surface-50'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`flex-1 p-3 rounded-lg text-center ${isDark ? 'bg-surface-800' : 'bg-surface-50'}`}>
                   <span className={`text-[10px] block mb-0.5 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>Current</span>
                   <span className={`text-xl font-semibold ${isDark ? 'text-surface-300' : 'text-surface-700'}`}>{whatIf.originalScore}%</span>
                 </div>
                 <TrendingUp className="w-4 h-4 text-cyan-500 shrink-0" />
-                <div className="flex-1 p-2.5 rounded-lg text-center bg-cyan-500/10 border border-cyan-500/20">
+                <div className="flex-1 p-3 rounded-lg text-center bg-cyan-500/10 border border-cyan-500/20">
                   <span className="text-[10px] text-cyan-500 block mb-0.5">Simulated</span>
                   <span className="text-xl font-semibold text-cyan-500">{whatIf.improvedScore}%</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center mb-3">
+              <div className="flex items-center justify-center">
                 <span className={`text-xs font-medium px-3 py-1 rounded-full ${isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-cyan-50 text-cyan-600'}`}>
                   +{whatIf.improvement}% predicted
                 </span>
               </div>
 
-              <p className={`text-xs leading-relaxed mb-3 text-center ${isDark ? 'text-surface-400' : 'text-surface-500'}`}>
+              <p className={`text-sm leading-relaxed text-center ${isDark ? 'text-surface-400' : 'text-surface-500'}`}>
                 {whatIf.description}
               </p>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <span className={`text-[10px] font-medium uppercase tracking-wider ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
                   Suggested Trims
                 </span>
@@ -83,12 +93,12 @@ const WhatIfPanel = () => {
                     initial={{ opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 + i * 0.06 }}
-                    className={`flex items-center gap-2 p-2 rounded-md ${isDark ? 'bg-surface-800/50' : 'bg-surface-50'}`}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-md ${isDark ? 'bg-surface-800/50' : 'bg-surface-50'}`}
                   >
                     <Scissors className="w-3 h-3 text-red-500 shrink-0" />
                     <div className="flex-1">
-                      <span className={`text-xs ${isDark ? 'text-surface-200' : 'text-surface-700'}`}>{seg.label}</span>
-                      <span className={`text-[10px] ml-1.5 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
+                      <span className={`text-sm ${isDark ? 'text-surface-200' : 'text-surface-700'}`}>{seg.label}</span>
+                      <span className={`text-xs ml-1.5 ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
                         {seg.start}s – {seg.end}s
                       </span>
                     </div>

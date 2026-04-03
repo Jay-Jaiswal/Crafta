@@ -1,0 +1,28 @@
+{
+  "video_name": "perfect_ad_video.mp4",
+  "metadata": {
+    "duration": 15,
+    "fps": 1
+  },
+  "frames": [
+    {"timestamp": 0, "motion": 0.7, "brightness": 200, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 1, "motion": 0.75, "brightness": 210, "face_presence": 1, "scene_change": 0},
+    {"timestamp": 2, "motion": 0.8, "brightness": 220, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 3, "motion": 0.85, "brightness": 230, "face_presence": 1, "scene_change": 0},
+    {"timestamp": 4, "motion": 0.8, "brightness": 225, "face_presence": 1, "scene_change": 0},
+
+    {"timestamp": 5, "motion": 0.75, "brightness": 210, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 6, "motion": 0.7, "brightness": 205, "face_presence": 1, "scene_change": 0},
+    {"timestamp": 7, "motion": 0.78, "brightness": 215, "face_presence": 1, "scene_change": 1},
+
+    {"timestamp": 8, "motion": 0.82, "brightness": 220, "face_presence": 1, "scene_change": 0},
+    {"timestamp": 9, "motion": 0.85, "brightness": 230, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 10, "motion": 0.8, "brightness": 225, "face_presence": 1, "scene_change": 0},
+
+    {"timestamp": 11, "motion": 0.78, "brightness": 215, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 12, "motion": 0.8, "brightness": 220, "face_presence": 1, "scene_change": 0},
+
+    {"timestamp": 13, "motion": 0.85, "brightness": 235, "face_presence": 1, "scene_change": 1},
+    {"timestamp": 14, "motion": 0.9, "brightness": 240, "face_presence": 1, "scene_change": 0}
+  ]
+}

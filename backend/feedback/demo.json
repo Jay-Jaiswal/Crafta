@@ -1,0 +1,26 @@
+{
+  "video_id": "demo",
+  "entries": [
+    {
+      "suggestion_id": 1,
+      "timestamp": null,
+      "feedback": "accurate",
+      "comment": null,
+      "recorded_at": "2026-04-03T09:01:31.484135"
+    },
+    {
+      "suggestion_id": 1,
+      "timestamp": null,
+      "feedback": "accurate",
+      "comment": null,
+      "recorded_at": "2026-04-03T09:55:46.015593"
+    },
+    {
+      "suggestion_id": 1,
+      "timestamp": null,
+      "feedback": "accurate",
+      "comment": null,
+      "recorded_at": "2026-04-03T10:34:11.164084"
+    }
+  ]
+}

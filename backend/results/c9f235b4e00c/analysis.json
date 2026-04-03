@@ -1,0 +1,213 @@
+{
+  "video_id": "c9f235b4e00c",
+  "timestamp": "2026-04-03T10:00:35.615920",
+  "data": {
+    "video_url": "/uploads/c9f235b4e00c/video.mp4",
+    "video_duration": 10.0,
+    "overall_score": 45.2,
+    "total_views": 2700,
+    "avg_watch_time": "6s",
+    "completion_rate": "52%",
+    "summary": "First risk appears around 2s. Most critical segment is 2s-9s due to no human presence. Overall attention score is 45.2%, based on motion, pacing, visual variation, brightness, and human-presence signals.",
+    "attention_scores": [
+      {
+        "time": 0.0,
+        "score": 47.5,
+        "label": "Intro"
+      },
+      {
+        "time": 1.0,
+        "score": 45.2,
+        "label": "Scene change"
+      },
+      {
+        "time": 2.0,
+        "score": 44.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 3.0,
+        "score": 45.6,
+        "label": "Scene change"
+      },
+      {
+        "time": 4.0,
+        "score": 46.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 5.0,
+        "score": 44.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 6.0,
+        "score": 44.7,
+        "label": "Scene change"
+      },
+      {
+        "time": 7.0,
+        "score": 44.2,
+        "label": "Scene change"
+      },
+      {
+        "time": 8.0,
+        "score": 43.8,
+        "label": "Scene change"
+      },
+      {
+        "time": 9.0,
+        "score": 45.7,
+        "label": ""
+      }
+    ],
+    "drops": [
+      {
+        "id": 1,
+        "start": 2.0,
+        "end": 9.0,
+        "reason": "No human presence",
+        "severity": "medium",
+        "confidence": 62,
+        "details": "Frames in this segment contain almost no human presence, lowering social engagement cues.",
+        "icon": "face",
+        "tag": "Too Slow"
+      }
+    ],
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.0,
+        "type": "risk",
+        "label": "\u26a0\ufe0f Risk Zone",
+        "score": 46.4
+      },
+      {
+        "start": 2.0,
+        "end": 3.0,
+        "type": "low",
+        "label": "\ud83d\udca4 Low Energy",
+        "score": 44.4
+      },
+      {
+        "start": 3.0,
+        "end": 5.0,
+        "type": "risk",
+        "label": "\u26a0\ufe0f Risk Zone",
+        "score": 46.0
+      },
+      {
+        "start": 5.0,
+        "end": 9.0,
+        "type": "low",
+        "label": "\ud83d\udca4 Low Energy",
+        "score": 44.3
+      },
+      {
+        "start": 9.0,
+        "end": 10.0,
+        "type": "risk",
+        "label": "\u26a0\ufe0f Risk Zone",
+        "score": 45.7
+      }
+    ],
+    "insights": [
+      {
+        "id": 1,
+        "icon": "face",
+        "title": "No Human Presence",
+        "description": "Avg motion 0.20, variation 0.25, human presence ratio 0.00.",
+        "time_range": "2s - 9s",
+        "start": 2.0,
+        "end": 9.0,
+        "confidence": 62,
+        "severity": "medium"
+      }
+    ],
+    "suggestions": [
+      {
+        "id": 1,
+        "text": "Add a presenter face, hand interaction, or reaction shot in this interval to increase social attention cues.",
+        "confidence": 62,
+        "tag": "Too Slow",
+        "jump_to": 2.0,
+        "impact": "+10% retention"
+      }
+    ],
+    "what_if": {
+      "original_score": 45.2,
+      "improved_score": 47.7,
+      "improvement": 2.5,
+      "trimmed_segments": [
+        {
+          "start": 2.0,
+          "end": 9.0,
+          "label": "No human presence"
+        }
+      ],
+      "description": "Removing identified low-engagement segments would improve overall attention score by approximately 2 points."
+    },
+    "pipeline_preview": [
+      {
+        "timestamp": 0.0,
+        "frame_id": 0,
+        "scene_change": false,
+        "motion_score": 0.0,
+        "brightness_score": 0.5048,
+        "edge_density": 0.0497,
+        "human_count": 0,
+        "pacing_score": 0.4,
+        "visual_variation_score": 0.0,
+        "attention_drop_risk": 0.0025
+      },
+      {
+        "timestamp": 1.0,
+        "frame_id": 25,
+        "scene_change": true,
+        "motion_score": 0.1935,
+        "brightness_score": 0.4767,
+        "edge_density": 0.0287,
+        "human_count": 0,
+        "pacing_score": 0.32,
+        "visual_variation_score": 0.2701,
+        "attention_drop_risk": 0.4385
+      },
+      {
+        "timestamp": 2.0,
+        "frame_id": 50,
+        "scene_change": true,
+        "motion_score": 0.2068,
+        "brightness_score": 0.4136,
+        "edge_density": 0.0514,
+        "human_count": 0,
+        "pacing_score": 0.64,
+        "visual_variation_score": 0.1853,
+        "attention_drop_risk": 0.4511
+      },
+      {
+        "timestamp": 3.0,
+        "frame_id": 75,
+        "scene_change": true,
+        "motion_score": 0.298,
+        "brightness_score": 0.4851,
+        "edge_density": 0.0595,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.3703,
+        "attention_drop_risk": 0.4871
+      },
+      {
+        "timestamp": 4.0,
+        "frame_id": 100,
+        "scene_change": true,
+        "motion_score": 0.3368,
+        "brightness_score": 0.7351,
+        "edge_density": 0.0328,
+        "human_count": 0,
+        "pacing_score": 0.88,
+        "visual_variation_score": 0.3818,
+        "attention_drop_risk": 0.5032
+      }
+    ]
+  }
+}

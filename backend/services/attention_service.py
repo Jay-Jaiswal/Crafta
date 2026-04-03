@@ -573,39 +573,60 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
     set_progress(video_id, "processing", 65, "Preparing intelligence input")
     await _notify_subscribers(video_id)
 
+    analyzer_frames = []
+    for row in frame_signals:
+        motion = _clamp(float(row.get("motion_score", 0.0)), 0.0, 1.0)
+        variation = _clamp(float(row.get("visual_variation_score", 0.0)), 0.0, 1.0)
+        pacing = _clamp(float(row.get("pacing_score", 0.0)), 0.0, 1.0)
+        is_scene_change = bool(row.get("scene_change", False))
+        scene_signal = 1.0 if is_scene_change else 0.0
+        human_count = int(row.get("human_count", 0) or 0)
+
+        # Use a less punitive repetition proxy so low-motion but coherent scenes are not always flagged as repetitive.
+        variation_boost = _clamp((variation - 0.10) / 0.60, 0.0, 1.0)
+        repetition = _clamp(
+            1.0 - (0.55 * variation_boost + 0.30 * motion + 0.15 * scene_signal),
+            0.0,
+            1.0,
+        )
+
+        # If no person is detected, approximate focal-subject clarity with neutral baseline plus visual cues.
+        if human_count > 0:
+            face_presence = 1.0
+        else:
+            face_presence = round(
+                _clamp(
+                    0.42
+                    + 0.22 * motion
+                    + 0.20 * scene_signal
+                    + 0.16 * variation
+                    + 0.12 * pacing,
+                    0.32,
+                    0.88,
+                ),
+                4,
+            )
+
+        analyzer_frames.append(
+            {
+                "timestamp": float(row.get("timestamp", 0.0)),
+                "motion": motion,
+                "brightness": float(row.get("brightness_score", 0.0)),
+                "scene_change": 1 if is_scene_change else 0,
+                "repetition": round(repetition, 4),
+                "pacing_consistency": pacing,
+                "human_count": human_count,
+                "face_presence": face_presence,
+            }
+        )
+
     analyzer_input = {
         "video_name": f"{video_id}.mp4",
         "metadata": {
             "duration": duration,
             "fps": float(features.get("fps", 0.0) or 0.0),
         },
-        "frames": [
-            {
-                "timestamp": float(row.get("timestamp", 0.0)),
-                "motion": float(row.get("motion_score", 0.0)),
-                "brightness": float(row.get("brightness_score", 0.0)),
-                "scene_change": 1 if bool(row.get("scene_change", False)) else 0,
-                "repetition": max(0.0, 1.0 - float(row.get("visual_variation_score", 0.0))),
-                "pacing_consistency": float(row.get("pacing_score", 0.0)),
-                "human_count": int(row.get("human_count", 0)),
-                "face_presence": (
-                    1.0
-                    if int(row.get("human_count", 0)) > 0
-                    else round(
-                        _clamp(
-                            0.15
-                            + 0.35 * float(row.get("motion_score", 0.0))
-                            + 0.25 * (1.0 if bool(row.get("scene_change", False)) else 0.0)
-                            + 0.25 * float(row.get("visual_variation_score", 0.0)),
-                            0.0,
-                            0.7,
-                        ),
-                        4,
-                    )
-                ),
-            }
-            for row in frame_signals
-        ],
+        "frames": analyzer_frames,
     }
 
     set_progress(video_id, "processing", 72, "Running Analyzer intelligence")

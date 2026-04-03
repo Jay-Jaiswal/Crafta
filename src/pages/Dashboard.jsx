@@ -8,6 +8,7 @@ import InsightsPanel from '../components/InsightsPanel';
 import SuggestionsPanel from '../components/SuggestionsPanel';
 import WhatIfPanel from '../components/WhatIfPanel';
 import ChatbotPanel from '../components/ChatbotPanel';
+import { AnimatedDownload } from '../components/ui/animated-download.tsx';
 import { Upload, LoaderCircle, Video, CheckCircle2 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const clearError = useStore((s) => s.clearError);
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
+  const isPipelineActive = isUploading || pipelineStatus === 'processing';
 
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
@@ -142,6 +144,13 @@ const Dashboard = () => {
                   {processingStage}
                 </p>
               )}
+            </div>
+
+            <div className={`pt-2 ${isDark ? 'text-white' : 'text-surface-900'}`}>
+              <AnimatedDownload
+                className="max-w-full"
+                isAnimating={isPipelineActive}
+              />
             </div>
           </div>
         )}

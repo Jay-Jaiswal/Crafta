@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useThemeStore from '../store/useThemeStore';
 
@@ -8,11 +8,37 @@ const Heatmap = ({ scores, drops, duration, currentTime, onSeek }) => {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
+  const scoreBands = useMemo(() => {
+    const values = scores
+      .map((point) => Number(point?.score) || 0)
+      .sort((a, b) => a - b);
+
+    if (!values.length) {
+      return { high: 70, medium: 45, low: 30 };
+    }
+
+    const spread = values[values.length - 1] - values[0];
+    if (spread < 12) {
+      return { high: 70, medium: 45, low: 30 };
+    }
+
+    const pick = (percentile) => {
+      const idx = Math.round((values.length - 1) * percentile);
+      return values[Math.max(0, Math.min(values.length - 1, idx))];
+    };
+
+    return {
+      high: Math.max(55, pick(0.75)),
+      medium: Math.max(40, pick(0.45)),
+      low: Math.max(25, pick(0.2)),
+    };
+  }, [scores]);
+
   const getScoreColor = (score) => {
-    if (score >= 75) return '#10B981';
-    if (score >= 55) return '#34D399';
-    if (score >= 40) return '#F59E0B';
-    if (score >= 25) return '#F87171';
+    if (score >= scoreBands.high) return '#10B981';
+    if (score >= scoreBands.medium) return '#34D399';
+    if (score >= scoreBands.low) return '#F59E0B';
+    if (score >= 20) return '#F97316';
     return '#EF4444';
   };
 
@@ -121,7 +147,11 @@ const Heatmap = ({ scores, drops, duration, currentTime, onSeek }) => {
                   {Math.floor(hoverInfo.time / 60)}:{Math.floor(hoverInfo.time % 60).toString().padStart(2, '0')}
                 </div>
                 <div className={`text-[10px] font-medium ${
-                  hoverInfo.score >= 70 ? 'text-emerald-500' : hoverInfo.score >= 45 ? 'text-amber-500' : 'text-red-500'
+                  hoverInfo.score >= scoreBands.high
+                    ? 'text-emerald-500'
+                    : hoverInfo.score >= scoreBands.medium
+                      ? 'text-amber-500'
+                      : 'text-red-500'
                 }`}>
                   {hoverInfo.score}%
                 </div>

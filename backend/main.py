@@ -23,7 +23,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from routes import upload, analysis, feedback
+from routes import upload, analysis, feedback, chat
 from services.pipeline_service import subscribe_ws, unsubscribe_ws, get_progress
 from utils.file_utils import ensure_directories, UPLOADS_DIR
 
@@ -107,6 +107,7 @@ app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.include_router(upload.router)
 app.include_router(analysis.router)
 app.include_router(feedback.router)
+app.include_router(chat.router)
 
 
 # ─── Root & Health ────────────────────────────────────────────────────────────

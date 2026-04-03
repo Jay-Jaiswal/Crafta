@@ -115,4 +115,16 @@ export const connectProgressWS = (videoId, onMessage) => {
   return ws;
 };
 
+/**
+ * Ask chatbot a question grounded on analyzed JSON.
+ */
+export const askChatbot = async (question, videoId = null) => {
+  const payload = {
+    question,
+    video_id: videoId || null,
+  };
+  const response = await api.post('/chat', payload);
+  return response.data;
+};
+
 export default api;

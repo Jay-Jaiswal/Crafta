@@ -126,7 +126,7 @@ const ChatbotPanel = () => {
                   : 'bg-surface-50 border-transparent text-surface-600'
               }`}
             >
-              <p>{message.text}</p>
+              <p className="whitespace-pre-line">{message.text}</p>
               {message.role === 'assistant' && message.source && (
                 <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-md border ${sourceStyles[message.source] || sourceStyles.system}`}>

@@ -69,15 +69,31 @@ def _fallback_answer(question: str, analysis: dict, video_id: str) -> str:
 
     if top_drop:
         return (
-            f"Fallback answer for video {video_id}: {summary} "
-            f"Top issue is between {int(top_drop.get('start', 0))}s and {int(top_drop.get('end', 0))}s "
-            f"with reason '{top_drop.get('reason', 'unknown')}'. "
-            "Try reducing repetition, improving motion transitions, and strengthening focal subject clarity in that segment."
+            "Direct answer:\n"
+            f"- Top drop reason: {top_drop.get('reason', 'unknown')}\n"
+            "\n"
+            "Evidence:\n"
+            f"- Video ID: {video_id}\n"
+            f"- Drop window: {int(top_drop.get('start', 0))}s to {int(top_drop.get('end', 0))}s\n"
+            f"- Summary: {summary}\n"
+            "\n"
+            "Recommended next edits:\n"
+            "- Reduce repetition in this segment\n"
+            "- Increase motion transitions\n"
+            "- Strengthen focal subject clarity"
         )
 
     return (
-        f"Fallback answer for video {video_id}: {summary} "
-        "No strong drop windows detected; maintain pacing consistency and test alternate hooks in the first 3 seconds."
+        "Direct answer:\n"
+        "- No strong drop window detected in the current analysis.\n"
+        "\n"
+        "Evidence:\n"
+        f"- Video ID: {video_id}\n"
+        f"- Summary: {summary}\n"
+        "\n"
+        "Recommended next edits:\n"
+        "- Maintain pacing consistency\n"
+        "- Test alternate opening hooks in the first 3 seconds"
     )
 
 
@@ -95,7 +111,14 @@ def _build_prompt(question: str, analysis: dict, video_id: str) -> str:
     return (
         "You are a video quality and engagement assistant. "
         "Answer only using the provided analysis JSON evidence. "
-        "If evidence is insufficient, say that explicitly and give best next checks.\n\n"
+        "If evidence is insufficient, say that explicitly and give best next checks.\n"
+        "Use this exact format:\n"
+        "Direct answer:\n"
+        "- <one or two bullets>\n\n"
+        "Evidence:\n"
+        "- <2 to 4 bullets with concrete timestamps/metrics from JSON>\n\n"
+        "Recommended next edits:\n"
+        "- <2 to 4 action bullets>\n\n"
         f"Question: {question}\n\n"
         f"Analysis JSON: {json.dumps(compact, ensure_ascii=True)}"
     )

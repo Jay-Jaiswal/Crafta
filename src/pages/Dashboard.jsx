@@ -9,6 +9,7 @@ import SuggestionsPanel from '../components/SuggestionsPanel';
 import WhatIfPanel from '../components/WhatIfPanel';
 import ChatbotPanel from '../components/ChatbotPanel';
 import { AnimatedDownload } from '../components/ui/animated-download.tsx';
+import { Progress } from '../components/ui/progress';
 import { Upload, LoaderCircle, Video, CheckCircle2 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -28,6 +29,7 @@ const Dashboard = () => {
     : pipelineStatus === 'processing'
       ? 'PIPELINE'
       : 'READY';
+  const progressValue = isUploading ? 33 : pipelineStatus === 'processing' ? 66 : pipelineStatus === 'completed' ? 100 : 0;
 
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
@@ -130,6 +132,14 @@ const Dashboard = () => {
                 isAnimating={isPipelineActive}
                 statusText={progressStateLabel}
               />
+              <div className="w-full max-w-md px-1">
+                <Progress
+                  value={progressValue}
+                  className={isDark ? 'bg-surface-700/80' : 'bg-surface-200'}
+                  indicatorClassName="bg-brand-600"
+                  aria-label="Pipeline progress"
+                />
+              </div>
               {processingStage && pipelineStatus === 'processing' && (
                 <p className={`text-xs ${isDark ? 'text-surface-500' : 'text-surface-400'}`}>
                   {processingStage}

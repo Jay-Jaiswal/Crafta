@@ -1,0 +1,204 @@
+{
+  "video_id": "467978e7ba8c",
+  "timestamp": "2026-04-03T09:51:07.898313",
+  "data": {
+    "video_url": "/uploads/467978e7ba8c/video.mp4",
+    "video_duration": 10.0,
+    "overall_score": 45.7,
+    "total_views": 41025,
+    "avg_watch_time": "4s",
+    "completion_rate": "52%",
+    "summary": "55% of viewers likely drop after 6s due to audio energy drop. The most concerning segment is 6s-10s (audio energy drop). Consider adding stronger visual hooks and varying content pacing to improve retention.",
+    "attention_scores": [
+      {
+        "time": 0,
+        "score": 75.4,
+        "label": "Intro"
+      },
+      {
+        "time": 2,
+        "score": 63.2,
+        "label": ""
+      },
+      {
+        "time": 4,
+        "score": 52.0,
+        "label": ""
+      },
+      {
+        "time": 6,
+        "score": 39.2,
+        "label": ""
+      },
+      {
+        "time": 8,
+        "score": 25.0,
+        "label": "End"
+      },
+      {
+        "time": 10,
+        "score": 15,
+        "label": "End"
+      }
+    ],
+    "drops": [
+      {
+        "id": 1,
+        "start": 6,
+        "end": 10,
+        "reason": "Audio energy drop",
+        "severity": "medium",
+        "confidence": 80.0,
+        "details": "Background music fades and narration pace slows significantly."
+      }
+    ],
+    "segments": [
+      {
+        "start": 0,
+        "end": 2,
+        "type": "high",
+        "label": "\ud83d\udd25 High Engagement",
+        "score": 75.4
+      },
+      {
+        "start": 2,
+        "end": 6,
+        "type": "risk",
+        "label": "\u26a0\ufe0f Risk Zone",
+        "score": 57.6
+      },
+      {
+        "start": 6,
+        "end": 10.0,
+        "type": "low",
+        "label": "\ud83d\udca4 Low Energy",
+        "score": 15
+      }
+    ],
+    "insights": [
+      {
+        "id": 1,
+        "icon": "motion",
+        "title": "Low Motion Detected",
+        "description": "Camera is static with no subject movement",
+        "time_range": "6s - 10s",
+        "start": 6,
+        "end": 10,
+        "confidence": 80.0,
+        "severity": "medium"
+      },
+      {
+        "id": 2,
+        "icon": "hook",
+        "title": "Weak Opening Hook",
+        "description": "No question, bold text, or pattern interrupt in first 5s",
+        "time_range": "0s - 5s",
+        "start": 0,
+        "end": 5,
+        "confidence": 83,
+        "severity": "high"
+      }
+    ],
+    "suggestions": [
+      {
+        "id": 1,
+        "text": "Add a bold question or surprising statistic in the first 3 seconds",
+        "confidence": 70,
+        "tag": "Hook Weak",
+        "jump_to": 0,
+        "impact": "+18% retention"
+      },
+      {
+        "id": 2,
+        "text": "Introduce a face or human element during the low-motion segment",
+        "confidence": 93,
+        "tag": "Too Slow",
+        "jump_to": 0,
+        "impact": "+12% retention"
+      },
+      {
+        "id": 3,
+        "text": "Cut or re-shoot the repetitive segment \u2014 it mirrors earlier content",
+        "confidence": 84,
+        "tag": "Repetitive",
+        "jump_to": 0,
+        "impact": "+8% retention"
+      }
+    ],
+    "what_if": {
+      "original_score": 45.7,
+      "improved_score": 58.7,
+      "improvement": 13.0,
+      "trimmed_segments": [
+        {
+          "start": 6,
+          "end": 10,
+          "label": "Audio energy drop"
+        }
+      ],
+      "description": "Removing identified low-engagement segments would improve overall attention score by approximately 13 points."
+    },
+    "pipeline_preview": [
+      {
+        "timestamp": 0.0,
+        "frame_id": 0,
+        "scene_change": false,
+        "motion_score": 0.0,
+        "brightness_score": 0.5048,
+        "edge_density": 0.0497,
+        "human_count": 0,
+        "pacing_score": 0.4,
+        "visual_variation_score": 0.0,
+        "attention_drop_risk": 0.0025
+      },
+      {
+        "timestamp": 1.0,
+        "frame_id": 25,
+        "scene_change": true,
+        "motion_score": 0.1935,
+        "brightness_score": 0.4767,
+        "edge_density": 0.0287,
+        "human_count": 0,
+        "pacing_score": 0.32,
+        "visual_variation_score": 0.2701,
+        "attention_drop_risk": 0.4385
+      },
+      {
+        "timestamp": 2.0,
+        "frame_id": 50,
+        "scene_change": true,
+        "motion_score": 0.2068,
+        "brightness_score": 0.4136,
+        "edge_density": 0.0514,
+        "human_count": 0,
+        "pacing_score": 0.64,
+        "visual_variation_score": 0.1853,
+        "attention_drop_risk": 0.4511
+      },
+      {
+        "timestamp": 3.0,
+        "frame_id": 75,
+        "scene_change": true,
+        "motion_score": 0.298,
+        "brightness_score": 0.4851,
+        "edge_density": 0.0595,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.3703,
+        "attention_drop_risk": 0.4871
+      },
+      {
+        "timestamp": 4.0,
+        "frame_id": 100,
+        "scene_change": true,
+        "motion_score": 0.3368,
+        "brightness_score": 0.7351,
+        "edge_density": 0.0328,
+        "human_count": 0,
+        "pacing_score": 0.88,
+        "visual_variation_score": 0.3818,
+        "attention_drop_risk": 0.5032
+      }
+    ]
+  }
+}

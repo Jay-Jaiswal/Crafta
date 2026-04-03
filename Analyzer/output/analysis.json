@@ -1,0 +1,404 @@
+{
+  "video_name": "demo_ad_video.mp4",
+  "analysis_scope": "video_quality_engagement_compliance",
+  "metadata": {
+    "duration": 15,
+    "fps": 1,
+    "frames_analyzed": 15
+  },
+  "attention_timeline": [
+    22,
+    25,
+    68,
+    68,
+    65,
+    24,
+    25,
+    19,
+    64,
+    64,
+    61,
+    26,
+    25,
+    70,
+    70
+  ],
+  "attention_timeline_detailed": [
+    {
+      "timestamp": 0.0,
+      "score": 21.66,
+      "severity": "critical",
+      "feature_contributions": {
+        "motion": 10.0,
+        "brightness": 43.14,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 60.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "dim"
+      }
+    },
+    {
+      "timestamp": 1.0,
+      "score": 25.44,
+      "severity": "medium",
+      "feature_contributions": {
+        "motion": 15.0,
+        "brightness": 47.06,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 2.0,
+      "score": 67.69,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 60.0,
+        "brightness": 70.59,
+        "face_presence": 100.0,
+        "scene_change": 100.0,
+        "pacing_consistency": 46.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 3.0,
+      "score": 68.14,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 70.0,
+        "brightness": 78.43,
+        "face_presence": 100.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 84.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 4.0,
+      "score": 64.88,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 65.0,
+        "brightness": 74.51,
+        "face_presence": 100.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 5.0,
+      "score": 23.76,
+      "severity": "critical",
+      "feature_contributions": {
+        "motion": 20.0,
+        "brightness": 50.98,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 46.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 6.0,
+      "score": 24.78,
+      "severity": "critical",
+      "feature_contributions": {
+        "motion": 10.0,
+        "brightness": 43.14,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 84.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "dim"
+      }
+    },
+    {
+      "timestamp": 7.0,
+      "score": 18.82,
+      "severity": "critical",
+      "feature_contributions": {
+        "motion": 5.0,
+        "brightness": 35.29,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 10.0,
+        "color_quality": "dim"
+      }
+    },
+    {
+      "timestamp": 8.0,
+      "score": 63.77,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 50.0,
+        "brightness": 62.75,
+        "face_presence": 100.0,
+        "scene_change": 100.0,
+        "pacing_consistency": 46.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 9.0,
+      "score": 64.23,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 60.0,
+        "brightness": 70.59,
+        "face_presence": 100.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 84.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 10.0,
+      "score": 60.97,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 55.0,
+        "brightness": 66.67,
+        "face_presence": 100.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 11.0,
+      "score": 26.36,
+      "severity": "medium",
+      "feature_contributions": {
+        "motion": 20.0,
+        "brightness": 50.98,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 66.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 12.0,
+      "score": 25.44,
+      "severity": "medium",
+      "feature_contributions": {
+        "motion": 15.0,
+        "brightness": 47.06,
+        "face_presence": 0.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 13.0,
+      "score": 69.7,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 70.0,
+        "brightness": 82.35,
+        "face_presence": 100.0,
+        "scene_change": 100.0,
+        "pacing_consistency": 26.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    },
+    {
+      "timestamp": 14.0,
+      "score": 69.5,
+      "severity": "low",
+      "feature_contributions": {
+        "motion": 75.0,
+        "brightness": 86.27,
+        "face_presence": 100.0,
+        "scene_change": 30.0,
+        "pacing_consistency": 74.0,
+        "repetition_penalty": 0.0,
+        "color_quality": "balanced"
+      }
+    }
+  ],
+  "attention_drops": [
+    {
+      "start_time": 0.0,
+      "end_time": 1.0,
+      "duration_sec": 1.0,
+      "min_score": 21.66,
+      "avg_score": 23.55,
+      "severity": "critical",
+      "root_causes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "issues": [
+        "This segment has limited visual dynamics and weak motion cues.",
+        "The segment lacks a clear focal subject for viewer orientation.",
+        "Scene progression is weak, making the narrative feel static."
+      ],
+      "causes": [
+        "Limited visual dynamics",
+        "Lack of a clear focal subject",
+        "Weak scene progression"
+      ],
+      "cause_codes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "fixes": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ],
+      "compliance_checks": [
+        {
+          "category": "content_readability",
+          "level": "info",
+          "message": "Primary subject is ambiguous; review for communication clarity and brand context."
+        }
+      ],
+      "suggestions": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ]
+    },
+    {
+      "start_time": 5.0,
+      "end_time": 7.0,
+      "duration_sec": 2.0,
+      "min_score": 18.82,
+      "avg_score": 22.45,
+      "severity": "critical",
+      "root_causes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "issues": [
+        "This segment has limited visual dynamics and weak motion cues.",
+        "The segment lacks a clear focal subject for viewer orientation.",
+        "Scene progression is weak, making the narrative feel static."
+      ],
+      "causes": [
+        "Limited visual dynamics",
+        "Lack of a clear focal subject",
+        "Weak scene progression"
+      ],
+      "cause_codes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "fixes": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ],
+      "compliance_checks": [
+        {
+          "category": "content_readability",
+          "level": "info",
+          "message": "Primary subject is ambiguous; review for communication clarity and brand context."
+        }
+      ],
+      "suggestions": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ]
+    },
+    {
+      "start_time": 11.0,
+      "end_time": 12.0,
+      "duration_sec": 1.0,
+      "min_score": 25.44,
+      "avg_score": 25.9,
+      "severity": "critical",
+      "root_causes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "issues": [
+        "This segment has limited visual dynamics and weak motion cues.",
+        "The segment lacks a clear focal subject for viewer orientation.",
+        "Scene progression is weak, making the narrative feel static."
+      ],
+      "causes": [
+        "Limited visual dynamics",
+        "Lack of a clear focal subject",
+        "Weak scene progression"
+      ],
+      "cause_codes": [
+        "limited_visual_dynamics",
+        "no_clear_focal_subject",
+        "weak_scene_progression"
+      ],
+      "fixes": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ],
+      "compliance_checks": [
+        {
+          "category": "content_readability",
+          "level": "info",
+          "message": "Primary subject is ambiguous; review for communication clarity and brand context."
+        }
+      ],
+      "suggestions": [
+        "Increase visual dynamics through purposeful camera movement, transition design, or B-roll inserts.",
+        "Strengthen subject focus using framing, close-ups, or presenter-led shots to anchor attention.",
+        "Restructure the segment with clearer scene progression and stronger editorial beats."
+      ]
+    }
+  ],
+  "total_drops": 3,
+  "overall_score": 46.34,
+  "key_insights": {
+    "worst_segment": {
+      "start_time": 6.0,
+      "end_time": 7.0,
+      "avg_score": 21.8,
+      "severity": "critical"
+    },
+    "best_segment": {
+      "start_time": 13.0,
+      "end_time": 14.0,
+      "avg_score": 69.6,
+      "severity": "low"
+    },
+    "adaptive_thresholds": {
+      "drop_threshold": 38.89,
+      "delta_threshold": 21.2
+    }
+  },
+  "compliance_summary": {
+    "status": "review_recommended",
+    "note": "Rule-based compliance checks focus on visual clarity, readability, and brand-safety cues."
+  },
+  "suggestions": [
+    "\ud83d\udd34 CRITICAL: Add a stronger opening hook in the first 3 seconds.",
+    "\ud83d\udfe1 MEDIUM: Add clear focal subject framing near key narrative beats.",
+    "\ud83d\udfe2 COMPLIANCE: Verify dark/unclear segments and ambiguous visuals against brand-safety standards."
+  ]
+}

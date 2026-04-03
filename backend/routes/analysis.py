@@ -1,0 +1,267 @@
+"""
+Analysis route — retrieves processing status and analysis results.
+
+GET /analysis/{video_id}
+  - Returns current processing status + progress
+  - When completed, returns full analysis data
+  - Falls back to dummy data if requested
+
+Example curl:
+  curl http://localhost:8000/analysis/abc123def456
+"""
+
+import logging
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Query
+
+from models.schemas import (
+    AnalysisResponse,
+    AnalysisData,
+    ProcessingStatus,
+    ErrorResponse,
+)
+from services.pipeline_service import get_progress
+from services.storage_service import load_analysis
+from utils.file_utils import video_exists, analysis_exists
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(tags=["Analysis"])
+
+
+# ─── Dummy data for fallback ─────────────────────────────────────────────────
+
+DUMMY_ANALYSIS = {
+    "video_url": "/sample/video.mp4",
+    "video_duration": 60,
+    "overall_score": 72,
+    "total_views": 14850,
+    "avg_watch_time": "38s",
+    "completion_rate": "63%",
+    "summary": (
+        "62% of viewers likely drop after 14s due to low motion and no human presence. "
+        "The intro hook is weak — consider adding a bold visual or question in the first "
+        "3 seconds. Mid-section engagement recovers briefly at 28s but drops again at 42s "
+        "due to repetitive content."
+    ),
+    "attention_scores": [
+        {"time": 0, "score": 95, "label": "Intro"},
+        {"time": 2, "score": 92, "label": ""},
+        {"time": 4, "score": 88, "label": ""},
+        {"time": 6, "score": 82, "label": ""},
+        {"time": 8, "score": 75, "label": ""},
+        {"time": 10, "score": 68, "label": ""},
+        {"time": 12, "score": 55, "label": "Hook fading"},
+        {"time": 14, "score": 42, "label": "Drop zone"},
+        {"time": 16, "score": 38, "label": ""},
+        {"time": 18, "score": 35, "label": ""},
+        {"time": 20, "score": 40, "label": "Slight recovery"},
+        {"time": 22, "score": 48, "label": ""},
+        {"time": 24, "score": 55, "label": ""},
+        {"time": 26, "score": 62, "label": ""},
+        {"time": 28, "score": 72, "label": "Content shift"},
+        {"time": 30, "score": 78, "label": ""},
+        {"time": 32, "score": 75, "label": ""},
+        {"time": 34, "score": 70, "label": ""},
+        {"time": 36, "score": 65, "label": ""},
+        {"time": 38, "score": 58, "label": ""},
+        {"time": 40, "score": 50, "label": "Declining"},
+        {"time": 42, "score": 40, "label": "Repetitive"},
+        {"time": 44, "score": 35, "label": ""},
+        {"time": 46, "score": 38, "label": ""},
+        {"time": 48, "score": 45, "label": "Recovery"},
+        {"time": 50, "score": 52, "label": ""},
+        {"time": 52, "score": 58, "label": ""},
+        {"time": 54, "score": 60, "label": "Closing"},
+        {"time": 56, "score": 55, "label": ""},
+        {"time": 58, "score": 50, "label": ""},
+        {"time": 60, "score": 45, "label": "End"},
+    ],
+    "drops": [
+        {
+            "id": 1, "start": 12, "end": 18, "reason": "Low motion detected",
+            "severity": "high", "confidence": 89,
+            "details": "Frame analysis shows minimal visual change.",
+        },
+        {
+            "id": 2, "start": 40, "end": 46, "reason": "Repetitive content pattern",
+            "severity": "medium", "confidence": 76,
+            "details": "Similar visual patterns repeated from earlier segment.",
+        },
+        {
+            "id": 3, "start": 6, "end": 10, "reason": "Weak hook — no engaging element",
+            "severity": "high", "confidence": 92,
+            "details": "First 10 seconds lack strong visual hook.",
+        },
+    ],
+    "segments": [
+        {"start": 0, "end": 4, "type": "high", "label": "🔥 High Engagement", "score": 92},
+        {"start": 4, "end": 12, "type": "risk", "label": "⚠️ Risk Zone", "score": 65},
+        {"start": 12, "end": 20, "type": "low", "label": "💤 Low Energy", "score": 38},
+        {"start": 20, "end": 32, "type": "high", "label": "🔥 High Engagement", "score": 72},
+        {"start": 32, "end": 40, "type": "risk", "label": "⚠️ Risk Zone", "score": 58},
+        {"start": 40, "end": 48, "type": "low", "label": "💤 Low Energy", "score": 40},
+        {"start": 48, "end": 60, "type": "risk", "label": "⚠️ Risk Zone", "score": 52},
+    ],
+    "insights": [
+        {
+            "id": 1, "icon": "motion", "title": "Low Motion Detected",
+            "description": "Camera is static with no subject movement for 6 seconds",
+            "time_range": "12s - 18s", "start": 12, "end": 18,
+            "confidence": 89, "severity": "high",
+        },
+        {
+            "id": 2, "icon": "face", "title": "No Human Presence",
+            "description": "No face detected in frame during this segment",
+            "time_range": "14s - 20s", "start": 14, "end": 20,
+            "confidence": 94, "severity": "high",
+        },
+        {
+            "id": 3, "icon": "audio", "title": "Audio Energy Drop",
+            "description": "Background music fades and narration pace slows",
+            "time_range": "10s - 16s", "start": 10, "end": 16,
+            "confidence": 78, "severity": "medium",
+        },
+        {
+            "id": 4, "icon": "repeat", "title": "Repetitive Visual Pattern",
+            "description": "Similar frame composition repeats from earlier segment",
+            "time_range": "40s - 46s", "start": 40, "end": 46,
+            "confidence": 76, "severity": "medium",
+        },
+        {
+            "id": 5, "icon": "hook", "title": "Weak Opening Hook",
+            "description": "No question, bold text, or pattern interrupt in first 5s",
+            "time_range": "0s - 5s", "start": 0, "end": 5,
+            "confidence": 92, "severity": "high",
+        },
+        {
+            "id": 6, "icon": "pacing", "title": "Pacing Too Slow",
+            "description": "Scene duration exceeds optimal 3-4 second cut rhythm",
+            "time_range": "32s - 40s", "start": 32, "end": 40,
+            "confidence": 71, "severity": "low",
+        },
+    ],
+    "suggestions": [
+        {
+            "id": 1,
+            "text": "Add a bold question or surprising statistic in the first 3 seconds",
+            "confidence": 94, "tag": "Hook Weak", "jump_to": 0, "impact": "+18% retention",
+        },
+        {
+            "id": 2,
+            "text": "Introduce a face or human element between 12s-18s",
+            "confidence": 89, "tag": "Too Slow", "jump_to": 12, "impact": "+12% retention",
+        },
+        {
+            "id": 3,
+            "text": "Cut or re-shoot the 40s-46s segment — it mirrors earlier content",
+            "confidence": 76, "tag": "Repetitive", "jump_to": 40, "impact": "+8% retention",
+        },
+        {
+            "id": 4,
+            "text": "Increase audio energy and add b-roll cuts between 10s-16s",
+            "confidence": 82, "tag": "Too Slow", "jump_to": 10, "impact": "+10% retention",
+        },
+        {
+            "id": 5,
+            "text": "Add a mid-roll hook or question at the 30s mark to maintain attention",
+            "confidence": 68, "tag": "Hook Weak", "jump_to": 30, "impact": "+6% retention",
+        },
+    ],
+    "what_if": {
+        "original_score": 72,
+        "improved_score": 84,
+        "improvement": 12,
+        "trimmed_segments": [
+            {"start": 12, "end": 18, "label": "Low motion segment"},
+            {"start": 40, "end": 46, "label": "Repetitive content"},
+        ],
+        "description": (
+            "Removing identified low-engagement segments would improve overall "
+            "attention score by approximately 12 points."
+        ),
+    },
+}
+
+
+@router.get(
+    "/analysis/{video_id}",
+    response_model=AnalysisResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "Video not found"},
+    },
+    summary="Get analysis results",
+    description="Retrieve processing status and analysis data for an uploaded video.",
+)
+async def get_analysis(video_id: str):
+    """
+    Get the analysis results for a video.
+
+    Returns:
+    - If processing: status + progress percentage
+    - If completed: full analysis data
+    - If failed: error details
+    """
+    # Check progress tracker first
+    progress = get_progress(video_id)
+
+    # Check if results exist on disk
+    stored_analysis = await load_analysis(video_id)
+
+    if stored_analysis:
+        return AnalysisResponse(
+            video_id=video_id,
+            status=ProcessingStatus.COMPLETED,
+            progress=100,
+            data=stored_analysis,
+        )
+
+    # If video exists but still processing
+    if progress["status"] in ("processing", "queued"):
+        return AnalysisResponse(
+            video_id=video_id,
+            status=ProcessingStatus.PROCESSING,
+            progress=progress["progress"],
+            data=None,
+        )
+
+    if progress["status"] == "failed":
+        return AnalysisResponse(
+            video_id=video_id,
+            status=ProcessingStatus.FAILED,
+            progress=0,
+            data=None,
+            error=progress.get("stage", "Unknown error"),
+        )
+
+    # Video not found — check if at least the directory exists
+    if not video_exists(video_id):
+        raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
+
+    # Fallback: directory exists but no analysis yet
+    return AnalysisResponse(
+        video_id=video_id,
+        status=ProcessingStatus.QUEUED,
+        progress=0,
+        data=None,
+    )
+
+
+@router.get(
+    "/analysis",
+    response_model=AnalysisResponse,
+    summary="Get dummy analysis (demo mode)",
+    description="Returns pre-built dummy data for frontend development without uploading a video.",
+)
+async def get_dummy_analysis():
+    """
+    Return dummy analysis data for frontend development.
+    This endpoint works without any video upload.
+    """
+    return AnalysisResponse(
+        video_id="demo",
+        status=ProcessingStatus.COMPLETED,
+        progress=100,
+        data=DUMMY_ANALYSIS,
+    )

@@ -7,6 +7,7 @@ import AttentionChart from '../components/AttentionChart';
 import InsightsPanel from '../components/InsightsPanel';
 import SuggestionsPanel from '../components/SuggestionsPanel';
 import WhatIfPanel from '../components/WhatIfPanel';
+import ChatbotPanel from '../components/ChatbotPanel';
 import { Activity, Upload, LoaderCircle } from 'lucide-react';
 
 const Dashboard = () => {
@@ -218,7 +219,10 @@ const Dashboard = () => {
 
           {/* What If */}
           <div className="lg:col-span-4">
-            <WhatIfPanel />
+            <div className="space-y-4">
+              <WhatIfPanel />
+              <ChatbotPanel />
+            </div>
           </div>
         </div>
 

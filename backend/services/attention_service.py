@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import sys
+import zipfile
 from urllib import error as url_error
 from urllib import request as url_request
 from pathlib import Path
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 _ANALYZER_FN = None
 _GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+_LOCAL_SOLUTION_MODEL = None
 
 
 def _load_analyzer_function():
@@ -91,6 +93,15 @@ def _tag_from_causes(causes: list[str]) -> str:
         "underexposed_visuals",
         "overexposed_visuals",
     ]):
+        return "Too Slow"
+    return "Hook Weak"
+
+
+def _tag_from_solution_text(text: str) -> str:
+    lowered = text.lower()
+    if any(word in lowered for word in ["repeat", "repet", "pattern"]):
+        return "Repetitive"
+    if any(word in lowered for word in ["pace", "slow", "cut", "scene", "motion"]):
         return "Too Slow"
     return "Hook Weak"
 
@@ -173,6 +184,234 @@ def _build_what_if(overall_score: float, drops: list[dict]) -> dict:
             "resolving top drop segments should raise retention consistency."
         ),
     }
+
+
+def _mean_or(values: list[float], default: float = 0.0) -> float:
+    return float(mean(values)) if values else default
+
+
+def _load_local_solution_model() -> dict | None:
+    """Load local model from model/solution_model checkpoint directory."""
+    global _LOCAL_SOLUTION_MODEL
+    if _LOCAL_SOLUTION_MODEL is not None:
+        return _LOCAL_SOLUTION_MODEL
+
+    try:
+        import torch
+        import torch.nn as nn
+    except Exception as exc:
+        logger.warning("Local solution model disabled: torch not available (%s)", exc)
+        return None
+
+    model_dir = Path(__file__).resolve().parents[2] / "model" / "solution_model"
+    if not model_dir.is_dir():
+        logger.warning("Local solution model not found at %s", model_dir)
+        return None
+
+    bundle_path = model_dir.parent / "solution_model.pt"
+    if not bundle_path.is_file():
+        root = "solution_model"
+        with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_STORED) as zf:
+            for p in model_dir.rglob("*"):
+                if p.is_file():
+                    zf.write(p, f"{root}/{p.relative_to(model_dir).as_posix()}")
+
+    checkpoint = torch.load(bundle_path, map_location="cpu", weights_only=False)
+    state_dict = checkpoint.get("model_state_dict", {})
+    feature_columns = checkpoint.get("feature_columns", [])
+    labels = checkpoint.get("labels", [])
+
+    if not state_dict or not feature_columns or not labels:
+        logger.warning("Local solution model checkpoint missing required keys")
+        return None
+
+    # Reconstruct architecture from discovered checkpoint shapes.
+    input_dim = int(state_dict["net.0.weight"].shape[1])
+    hidden_1 = int(state_dict["net.0.weight"].shape[0])
+    hidden_2 = int(state_dict["net.3.weight"].shape[0])
+    output_dim = int(state_dict["net.5.weight"].shape[0])
+
+    model = nn.Sequential(
+        nn.Linear(input_dim, hidden_1),
+        nn.ReLU(),
+        nn.Dropout(0.1),
+        nn.Linear(hidden_1, hidden_2),
+        nn.ReLU(),
+        nn.Linear(hidden_2, output_dim),
+    )
+    remapped_state = {}
+    for key, value in state_dict.items():
+        if key.startswith("net."):
+            remapped_state[key.replace("net.", "", 1)] = value
+        else:
+            remapped_state[key] = value
+    model.load_state_dict(remapped_state)
+    model.eval()
+
+    _LOCAL_SOLUTION_MODEL = {
+        "torch": torch,
+        "model": model,
+        "feature_columns": list(feature_columns),
+        "labels": list(labels),
+    }
+    logger.info("Local solution model loaded successfully from %s", model_dir)
+    return _LOCAL_SOLUTION_MODEL
+
+
+def _rows_for_drop(frame_signals: list[dict], start_t: float, end_t: float) -> list[dict]:
+    return [
+        row for row in frame_signals
+        if float(row.get("timestamp", -1)) >= start_t and float(row.get("timestamp", -1)) <= end_t
+    ]
+
+
+def _feature_vector_from_rows(rows: list[dict], features: dict, start_t: float, end_t: float) -> list[float]:
+    if not rows:
+        return [0.0] * 10
+
+    brightness = [_clamp(float(r.get("brightness_score", 0.0)), 0.0, 1.0) for r in rows]
+    motion = [_clamp(float(r.get("motion_score", 0.0)), 0.0, 1.0) for r in rows]
+    variation = [_clamp(float(r.get("visual_variation_score", 0.0)), 0.0, 1.0) for r in rows]
+    scene_flags = [1.0 if bool(r.get("scene_change", False)) else 0.0 for r in rows]
+    risk = [_clamp(float(r.get("attention_drop_risk", 0.0)), 0.0, 1.0) for r in rows]
+    pacing = [_clamp(float(r.get("pacing_score", 0.0)), 0.0, 1.0) for r in rows]
+    edge = [_clamp(float(r.get("edge_density", 0.0)), 0.0, 1.0) for r in rows]
+
+    audio_energy_all = features.get("audio_energy", []) or []
+    source_rows = features.get("frame_signals", []) or []
+    if audio_energy_all:
+        indexed = [
+            _clamp(float(audio_energy_all[i]), 0.0, 1.0)
+            for i, r in enumerate(source_rows)
+            if float(r.get("timestamp", -1)) >= start_t and float(r.get("timestamp", -1)) <= end_t and i < len(audio_energy_all)
+        ]
+    else:
+        indexed = []
+
+    blur_norm = _clamp(1.0 - _mean_or(edge, 0.2), 0.0, 1.0)
+    brightness_norm = _mean_or(brightness, 0.5)
+    saturation_norm = _mean_or(variation, 0.4)
+    frame_diff_norm = _mean_or(variation, 0.4)
+    motion_norm = _mean_or(motion, 0.3)
+    scene_change_norm = _mean_or(scene_flags, 0.0)
+    rms_norm = _mean_or(indexed, _mean_or(pacing, 0.3))
+    zcr_norm = _mean_or(pacing, 0.3)
+    clip_ratio_norm = _mean_or(risk, 0.2)
+    flatness_norm = _clamp(1.0 - _mean_or(variation, 0.4), 0.0, 1.0)
+
+    return [
+        blur_norm,
+        brightness_norm,
+        saturation_norm,
+        frame_diff_norm,
+        motion_norm,
+        scene_change_norm,
+        rms_norm,
+        zcr_norm,
+        clip_ratio_norm,
+        flatness_norm,
+    ]
+
+
+def _default_fallback_suggestions(*, duration: float) -> list[dict]:
+    base_times = [0.0, round(max(0.0, duration * 0.33), 1), round(max(0.0, duration * 0.66), 1)]
+    return [
+        {
+            "id": 1,
+            "text": "Strengthen the first 3 seconds with a clearer visual hook and immediate context.",
+            "confidence": 72,
+            "tag": "Hook Weak",
+            "jump_to": base_times[0],
+            "impact": "+6% retention",
+        },
+        {
+            "id": 2,
+            "text": "Increase scene variation and pacing in the middle segment to prevent attention drift.",
+            "confidence": 70,
+            "tag": "Too Slow",
+            "jump_to": base_times[1],
+            "impact": "+7% retention",
+        },
+        {
+            "id": 3,
+            "text": "Add a pattern break near the final third using a new angle, b-roll, or text beat.",
+            "confidence": 68,
+            "tag": "Repetitive",
+            "jump_to": base_times[2],
+            "impact": "+5% retention",
+        },
+    ]
+
+
+def _predict_solutions_with_local_model(*, raw_drops: list[dict], frame_signals: list[dict], features: dict, fallback: list[dict], duration: float) -> list[dict] | None:
+    loaded = _load_local_solution_model()
+    if not loaded:
+        return None
+
+    torch = loaded["torch"]
+    model = loaded["model"]
+    labels = loaded["labels"]
+
+    if not raw_drops:
+        rows = frame_signals
+        vector = _feature_vector_from_rows(rows, features, 0.0, max(duration, 0.0))
+        with torch.no_grad():
+            x = torch.tensor([vector], dtype=torch.float32)
+            logits = model(x)
+            probs = torch.softmax(logits, dim=1)[0]
+            topk = min(3, len(labels))
+            values, indices = torch.topk(probs, k=topk)
+
+        generated: list[dict] = []
+        for idx, (prob, label_idx) in enumerate(zip(values.tolist(), indices.tolist()), start=1):
+            text = str(labels[int(label_idx)])
+            generated.append(
+                {
+                    "id": idx,
+                    "text": text,
+                    "confidence": round(_clamp(float(prob) * 100.0, 58.0, 92.0), 0),
+                    "tag": _tag_from_solution_text(text),
+                    "jump_to": round(_clamp((idx - 1) * max(duration / 3.0, 0.0), 0.0, max(duration, 0.0)), 1),
+                    "impact": f"+{int(_clamp(5 + float(prob) * 8.0, 4, 12))}% retention",
+                }
+            )
+
+        if generated:
+            return generated
+        return fallback
+
+    suggestions: list[dict] = []
+    for idx, drop in enumerate(raw_drops[:5], start=1):
+        start_t = float(drop.get("start_time", 0.0))
+        end_t = float(drop.get("end_time", start_t))
+        rows = _rows_for_drop(frame_signals, start_t, end_t)
+        vector = _feature_vector_from_rows(rows, features, start_t, end_t)
+
+        with torch.no_grad():
+            x = torch.tensor([vector], dtype=torch.float32)
+            logits = model(x)
+            probs = torch.softmax(logits, dim=1)[0]
+            top_prob, top_idx = torch.max(probs, dim=0)
+
+        predicted_text = labels[int(top_idx.item())]
+        confidence = round(_clamp(float(top_prob.item()) * 100.0, 55.0, 98.0), 0)
+
+        causes = drop.get("cause_codes", [])
+        tag = _tag_from_causes(causes)
+        impact = f"+{int(_clamp((100 - float(drop.get('avg_score', 50))) * 0.12, 4, 18))}% retention"
+
+        suggestions.append(
+            {
+                "id": idx,
+                "text": str(predicted_text),
+                "confidence": confidence,
+                "tag": tag,
+                "jump_to": round(_clamp(start_t, 0.0, max(duration, 0.0)), 1),
+                "impact": impact,
+            }
+        )
+
+    return suggestions or fallback
 
 
 def _sanitize_gemini_suggestions(items: Any, fallback: list[dict], duration: float) -> list[dict]:
@@ -473,17 +712,23 @@ async def run_attention_pipeline(video_id: str, features: dict) -> dict:
             }
         )
 
-    set_progress(video_id, "processing", 88, "Enhancing recommendations")
+    if not suggestions:
+        suggestions = _default_fallback_suggestions(duration=duration)
+
+    set_progress(video_id, "processing", 88, "Predicting model-based solutions")
     await _notify_subscribers(video_id)
-    gemini_suggestions = await asyncio.to_thread(
-        _call_gemini_for_suggestions,
-        analyzer_output=analyzer_output,
-        current_suggestions=suggestions,
-        overall_score=round(float(analyzer_output.get("overall_score", 0.0)), 1),
+    model_suggestions = await asyncio.to_thread(
+        _predict_solutions_with_local_model,
+        raw_drops=raw_drops,
+        frame_signals=frame_signals,
+        features=features,
+        fallback=suggestions,
         duration=duration,
     )
-    if gemini_suggestions:
-        suggestions = gemini_suggestions
+    if model_suggestions:
+        suggestions = model_suggestions
+    elif not suggestions:
+        suggestions = _default_fallback_suggestions(duration=duration)
 
     overall_score = round(float(analyzer_output.get("overall_score", 0.0)), 1)
     key_insights = analyzer_output.get("key_insights", {})

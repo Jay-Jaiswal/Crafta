@@ -182,3 +182,15 @@ class HealthResponse(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
     error_code: Optional[str] = None
+
+
+class ChatRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=1000)
+    video_id: Optional[str] = Field(None, description="Optional video id to target a specific analysis")
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    video_id: str
+    source: str = Field(..., description="gemini or fallback")
+    source_detail: Optional[str] = Field(None, description="Extra source context such as rate_limited, model_not_found, no_api_key")

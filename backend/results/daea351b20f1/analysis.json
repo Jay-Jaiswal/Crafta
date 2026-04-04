@@ -1,0 +1,418 @@
+{
+  "video_id": "daea351b20f1",
+  "timestamp": "2026-04-04T01:34:12.411990",
+  "data": {
+    "video_url": "/uploads/daea351b20f1/video.mp4",
+    "video_duration": 20.333333333333332,
+    "overall_score": 39.2,
+    "total_views": 6100,
+    "avg_watch_time": "11s",
+    "completion_rate": "48%",
+    "summary": "Most critical interval is 0s-2s with average score 22.9%. Overall score is 39.2% based on visual dynamics, clarity, focal presence, and pacing signals.",
+    "attention_scores": [
+      {
+        "time": 0.0,
+        "score": 8.8,
+        "label": "Drop zone"
+      },
+      {
+        "time": 1.0,
+        "score": 27.6,
+        "label": "Scene change"
+      },
+      {
+        "time": 2.0,
+        "score": 32.3,
+        "label": "Scene change"
+      },
+      {
+        "time": 3.0,
+        "score": 40.6,
+        "label": "Scene change"
+      },
+      {
+        "time": 4.0,
+        "score": 46.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 5.0,
+        "score": 36.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 6.0,
+        "score": 36.2,
+        "label": "Scene change"
+      },
+      {
+        "time": 7.0,
+        "score": 19.3,
+        "label": "Drop zone"
+      },
+      {
+        "time": 8.0,
+        "score": 44.3,
+        "label": "Scene change"
+      },
+      {
+        "time": 9.0,
+        "score": 49.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 10.0,
+        "score": 36.3,
+        "label": "Scene change"
+      },
+      {
+        "time": 11.0,
+        "score": 48.0,
+        "label": "Scene change"
+      },
+      {
+        "time": 12.0,
+        "score": 47.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 13.0,
+        "score": 46.0,
+        "label": "Scene change"
+      },
+      {
+        "time": 14.0,
+        "score": 36.8,
+        "label": "Scene change"
+      },
+      {
+        "time": 15.0,
+        "score": 49.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 16.0,
+        "score": 46.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 17.0,
+        "score": 48.0,
+        "label": "Scene change"
+      },
+      {
+        "time": 18.0,
+        "score": 38.5,
+        "label": "Scene change"
+      },
+      {
+        "time": 19.0,
+        "score": 42.4,
+        "label": "Scene change"
+      },
+      {
+        "time": 20.0,
+        "score": 42.0,
+        "label": "Scene change"
+      }
+    ],
+    "drops": [
+      {
+        "id": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "reason": "Limited visual dynamics",
+        "severity": "high",
+        "confidence": 92.0,
+        "details": "This segment has limited visual dynamics and weak motion cues. Visual structure is repetitive and offers limited variation.",
+        "causes": [
+          "limited_visual_dynamics",
+          "repetitive_structure"
+        ]
+      },
+      {
+        "id": 2,
+        "start": 7.0,
+        "end": 8.5,
+        "reason": "Limited visual dynamics",
+        "severity": "high",
+        "confidence": 77.0,
+        "details": "This segment has limited visual dynamics and weak motion cues. Scene progression is weak, making the narrative feel static.",
+        "causes": [
+          "limited_visual_dynamics",
+          "weak_scene_progression",
+          "repetitive_structure"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 4.0,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 27.3
+      },
+      {
+        "start": 4.0,
+        "end": 5.0,
+        "type": "risk",
+        "label": "Risk Zone",
+        "score": 46.5
+      },
+      {
+        "start": 5.0,
+        "end": 9.0,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 34.1
+      },
+      {
+        "start": 9.0,
+        "end": 10.0,
+        "type": "risk",
+        "label": "Risk Zone",
+        "score": 49.4
+      },
+      {
+        "start": 10.0,
+        "end": 11.0,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 36.3
+      },
+      {
+        "start": 11.0,
+        "end": 14.0,
+        "type": "risk",
+        "label": "Risk Zone",
+        "score": 47.2
+      },
+      {
+        "start": 14.0,
+        "end": 15.0,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 36.8
+      },
+      {
+        "start": 15.0,
+        "end": 18.0,
+        "type": "risk",
+        "label": "Risk Zone",
+        "score": 48.0
+      },
+      {
+        "start": 18.0,
+        "end": 20.333333333333332,
+        "type": "low",
+        "label": "Low Energy",
+        "score": 41.0
+      }
+    ],
+    "insights": [
+      {
+        "id": 1,
+        "icon": "motion",
+        "title": "Limited visual dynamics",
+        "description": "This segment has limited visual dynamics and weak motion cues. Visual structure is repetitive and offers limited variation. This segment has limited visual dynamics and weak motion cues. Scene progression is weak, making the narrative feel static.",
+        "action": "Introduce a pattern break with a new angle, overlay, or cut within 2-3 seconds.",
+        "time_range": "00:00 - 00:08",
+        "start": 0.0,
+        "end": 8.5,
+        "confidence": 92.0,
+        "severity": "high"
+      },
+      {
+        "id": 2,
+        "icon": "hook",
+        "title": "Opening retention risk",
+        "description": "Attention remains consistently low in this interval and may trigger early exits.",
+        "action": "Shorten this segment and add a strong pattern break with a new visual hook.",
+        "time_range": "00:00 - 00:05",
+        "start": 0.0,
+        "end": 5.1,
+        "confidence": 84,
+        "severity": "high"
+      },
+      {
+        "id": 3,
+        "icon": "hook",
+        "title": "Early-mid retention risk",
+        "description": "Attention remains consistently low in this interval and may trigger early exits.",
+        "action": "Shorten this segment and add a strong pattern break with a new visual hook.",
+        "time_range": "00:05 - 00:10",
+        "start": 5.1,
+        "end": 10.2,
+        "confidence": 84,
+        "severity": "high"
+      },
+      {
+        "id": 4,
+        "icon": "pacing",
+        "title": "Late-mid pacing slowdown",
+        "description": "Momentum drops in this interval, suggesting pacing and transition fatigue.",
+        "action": "Tighten edits and increase scene variation every 2-4 seconds.",
+        "time_range": "00:10 - 00:15",
+        "start": 10.2,
+        "end": 15.2,
+        "confidence": 78,
+        "severity": "medium"
+      },
+      {
+        "id": 5,
+        "icon": "pacing",
+        "title": "Closing pacing slowdown",
+        "description": "Momentum drops in this interval, suggesting pacing and transition fatigue.",
+        "action": "Tighten edits and increase scene variation every 2-4 seconds.",
+        "time_range": "00:15 - 00:20",
+        "start": 15.2,
+        "end": 20.3,
+        "confidence": 78,
+        "severity": "medium"
+      }
+    ],
+    "suggestions": [
+      {
+        "id": 1,
+        "text": "Add faster cuts, scene changes, or B-roll every 2-3 seconds.",
+        "confidence": 98.0,
+        "tag": "Repetitive",
+        "jump_to": 0.0,
+        "impact": "+9% retention"
+      },
+      {
+        "id": 2,
+        "text": "At 00:07-00:07, break repetitive visuals with a shot change or b-roll cut.",
+        "confidence": 68,
+        "tag": "Repetitive",
+        "jump_to": 7.0,
+        "impact": "+9% retention",
+        "alternatives": [
+          "Insert a contrasting b-roll cut.",
+          "Switch camera angle or framing.",
+          "Use on-screen text to reset attention."
+        ]
+      },
+      {
+        "id": 3,
+        "text": "At 00:05-00:08, tighten pacing with quicker edits and stronger motion cues.",
+        "confidence": 66,
+        "tag": "Too Slow",
+        "jump_to": 5.1,
+        "impact": "+5% retention",
+        "alternatives": [
+          "Trim pauses longer than 1 second.",
+          "Increase shot-change frequency.",
+          "Add voice emphasis or music lift."
+        ]
+      },
+      {
+        "id": 4,
+        "text": "At 00:10-00:13, break repetitive visuals with a shot change or b-roll cut.",
+        "confidence": 66,
+        "tag": "Repetitive",
+        "jump_to": 10.2,
+        "impact": "+5% retention",
+        "alternatives": [
+          "Insert a contrasting b-roll cut.",
+          "Switch camera angle or framing.",
+          "Use on-screen text to reset attention."
+        ]
+      }
+    ],
+    "what_if": {
+      "original_score": 39.2,
+      "improved_score": 47.2,
+      "improvement": 8.0,
+      "trimmed_segments": [
+        {
+          "start": 0.0,
+          "end": 2.0,
+          "label": "Limited visual dynamics"
+        },
+        {
+          "start": 7.0,
+          "end": 9.0,
+          "label": "Limited visual dynamics"
+        }
+      ],
+      "description": "Estimated improvement is calculated from detected drop severity and duration; resolving top drop segments should raise retention consistency."
+    },
+    "analyzer_raw": {
+      "total_drops": 2,
+      "compliance_summary": {
+        "status": "review_recommended",
+        "note": "Rule-based compliance checks focus on visual clarity, readability, and brand-safety cues."
+      },
+      "video_suggestions": [
+        "\ud83d\udd34 CRITICAL: Add a stronger opening hook in the first 3 seconds.",
+        "\ud83d\udfe1 MEDIUM: Reduce repetitive structure using tighter editorial trimming.",
+        "\ud83d\udfe2 COMPLIANCE: Verify dark/unclear segments and ambiguous visuals against brand-safety standards.",
+        "\ud83d\udd34 CRITICAL: Re-edit structure to improve pacing and visual variety."
+      ]
+    },
+    "pipeline_preview": [
+      {
+        "timestamp": 0.0,
+        "frame_id": 0,
+        "scene_change": false,
+        "motion_score": 0.0,
+        "brightness_score": 0.5387,
+        "edge_density": 0.1282,
+        "human_count": 0,
+        "pacing_score": 0.4,
+        "visual_variation_score": 0.0,
+        "attention_drop_risk": 0.0064
+      },
+      {
+        "timestamp": 1.0,
+        "frame_id": 30,
+        "scene_change": true,
+        "motion_score": 0.1002,
+        "brightness_score": 0.5382,
+        "edge_density": 0.1435,
+        "human_count": 0,
+        "pacing_score": 0.32,
+        "visual_variation_score": 0.1174,
+        "attention_drop_risk": 0.4022
+      },
+      {
+        "timestamp": 2.0,
+        "frame_id": 60,
+        "scene_change": true,
+        "motion_score": 0.1049,
+        "brightness_score": 0.5349,
+        "edge_density": 0.1329,
+        "human_count": 0,
+        "pacing_score": 0.64,
+        "visual_variation_score": 0.0632,
+        "attention_drop_risk": 0.4038
+      },
+      {
+        "timestamp": 3.0,
+        "frame_id": 90,
+        "scene_change": true,
+        "motion_score": 0.2428,
+        "brightness_score": 0.4728,
+        "edge_density": 0.2356,
+        "human_count": 0,
+        "pacing_score": 0.76,
+        "visual_variation_score": 0.216,
+        "attention_drop_risk": 0.4711
+      },
+      {
+        "timestamp": 4.0,
+        "frame_id": 120,
+        "scene_change": true,
+        "motion_score": 0.2463,
+        "brightness_score": 0.5305,
+        "edge_density": 0.1537,
+        "human_count": 0,
+        "pacing_score": 0.88,
+        "visual_variation_score": 0.3433,
+        "attention_drop_risk": 0.4685
+      }
+    ]
+  }
+}

@@ -157,7 +157,7 @@ const ChatbotPanel = () => {
         )}
       </div>
 
-      <div className="p-3.5 space-y-3.5">
+      <div className="p-3 space-y-2.5">
         {!data && (
           <div className={`text-sm rounded-lg border px-3 py-2 ${isDark ? 'bg-amber-500/5 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600'}`}>
             Upload and analyze a video first.
@@ -184,11 +184,11 @@ const ChatbotPanel = () => {
           </div>
         )}
 
-        <div ref={messageListRef} className="h-80 overflow-y-auto space-y-2.5 pr-1">
+        <div ref={messageListRef} className="h-56 overflow-y-auto space-y-2 pr-1">
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}`}
-              className={`rounded-lg px-3 py-2.5 text-sm leading-relaxed border ${
+              className={`rounded-lg px-2.5 py-2 text-[13px] leading-relaxed border ${
                 message.role === 'user'
                   ? isDark
                     ? 'bg-brand-500/10 border-brand-500/20 text-surface-100'
@@ -213,7 +213,7 @@ const ChatbotPanel = () => {
               )}
 
               {message.role === 'assistant' && message.analysisContext && (
-                <div className={`mt-3 rounded-lg border p-3 space-y-2 ${isDark ? 'border-surface-700 bg-surface-900/40 text-surface-400' : 'border-surface-200 bg-white text-surface-600'}`}>
+                <div className={`mt-2 rounded-lg border p-2.5 space-y-1.5 ${isDark ? 'border-surface-700 bg-surface-900/40 text-surface-400' : 'border-surface-200 bg-white text-surface-600'}`}>
                   {Array.isArray(message.analysisContext?.insights) && message.analysisContext.insights.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-xs font-semibold">Top Insight</p>
@@ -245,15 +245,15 @@ const ChatbotPanel = () => {
           ))}
         </div>
 
-        <div className="flex items-end gap-2.5">
+        <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Ask about drops, pacing, hooks..."
-            rows={3}
-            className={`flex-1 resize-none rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500/30 focus:border-brand-500 transition-colors ${
+            rows={2}
+            className={`flex-1 resize-none rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500/30 focus:border-brand-500 transition-colors ${
               isDark
                 ? 'bg-surface-800 border-surface-700 text-surface-200 placeholder:text-surface-600'
                 : 'bg-white border-surface-300 text-surface-700 placeholder:text-surface-400'
@@ -262,7 +262,7 @@ const ChatbotPanel = () => {
           <button
             onClick={handleAsk}
             disabled={isAsking || !question.trim()}
-            className="h-11 px-3.5 rounded-lg bg-brand-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 hover:bg-brand-700 transition-colors"
+            className="h-10 px-3 rounded-lg bg-brand-600 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 hover:bg-brand-700 transition-colors"
           >
             {isAsking ? <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>

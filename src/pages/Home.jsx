@@ -43,7 +43,7 @@ const Home = () => {
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
-            onClick={() => navigate('/analytics')}
+            onClick={() => window.open('/liveDemo.mp4', '_blank', 'noopener,noreferrer')}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/70 bg-white/55 text-[#0B1535] text-sm font-semibold hover:bg-white/75 transition-colors"
           >
             <BarChart3 className="w-4 h-4" />

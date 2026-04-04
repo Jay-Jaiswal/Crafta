@@ -78,6 +78,21 @@ const normalizeAnalysisData = (payload) => {
     quartile_1, quartile_2, quartile_3, quartile_4,
     overall_score,
     visual_score, audio_score, motion_score, pacing_score, hook_score, retention_score
+  };
+};
+
+const useStore = create((set, get) => ({
+  // Data
+  data: null,
+  isLoading: false,
+  error: null,
+  activeVideoId: null,
+  pipelineStatus: 'idle',
+  uploadProgress: 0,
+  processingProgress: 0,
+  processingStage: '',
+  isUploading: false,
+
   // Video state
   currentTime: 0,
   isPlaying: false,

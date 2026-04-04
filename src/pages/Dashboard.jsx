@@ -16,6 +16,8 @@ const Dashboard = () => {
   const data = useStore((s) => s.data);
   const uploadAndAnalyze = useStore((s) => s.uploadAndAnalyze);
   const isUploading = useStore((s) => s.isUploading);
+  const uploadProgress = useStore((s) => s.uploadProgress);
+  const processingProgress = useStore((s) => s.processingProgress);
   const processingStage = useStore((s) => s.processingStage);
   const pipelineStatus = useStore((s) => s.pipelineStatus);
   const activeVideoId = useStore((s) => s.activeVideoId);
@@ -131,6 +133,7 @@ const Dashboard = () => {
                 className="max-w-full md:translate-x-10"
                 isAnimating={isPipelineActive}
                 statusText={progressStateLabel}
+                realProgress={isUploading ? uploadProgress : processingProgress}
               />
               <div className="w-full max-w-md px-1">
                 <Progress

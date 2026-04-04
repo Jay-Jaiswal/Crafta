@@ -11,6 +11,7 @@ interface DownloadProps {
   height?: string | number;
   isAnimating?: boolean;
   statusText?: string;
+  realProgress?: number;
   onAnimationComplete?: () => void;
 }
 
@@ -23,6 +24,7 @@ export function AnimatedDownload({
   height,
   isAnimating = false,
   statusText = "READY",
+  realProgress,
   onAnimationComplete,
 }: DownloadProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -85,6 +87,15 @@ export function AnimatedDownload({
       return;
     }
 
+    if (realProgress !== undefined && realProgress >= 0) {
+      // If we are given a real progress number, map "0-100" to it
+      setAnimatedProgress(realProgress);
+      const fakeFilesCount = Math.floor((realProgress / 100) * 1150);
+      setFilesCount(fakeFilesCount);
+      setTimeRemainingSeconds(Math.max(0, 45 - Math.floor((realProgress / 100) * 45)));
+      return;
+    }
+
     const progressInterval = setInterval(() => {
       setAnimatedProgress((prev) => {
         const next = prev + 1;
@@ -102,7 +113,7 @@ export function AnimatedDownload({
     return () => {
       clearInterval(progressInterval);
     };
-  }, [isAnimating, duration]);
+  }, [isAnimating, duration, realProgress]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

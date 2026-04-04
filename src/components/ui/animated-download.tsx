@@ -27,7 +27,7 @@ export function AnimatedDownload({
 }: DownloadProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [filesCount, setFilesCount] = useState(0);
-  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(154);
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(45);
   const shouldReduceMotion = useReducedMotion();
 
   const [displayText, setDisplayText] = useState("READY".split(""));
@@ -81,15 +81,15 @@ export function AnimatedDownload({
     if (!isAnimating) {
       setAnimatedProgress(0);
       setFilesCount(0);
-      setTimeRemainingSeconds(154);
+      setTimeRemainingSeconds(45);
       return;
     }
 
     const progressInterval = setInterval(() => {
       setAnimatedProgress((prev) => {
         const next = prev + 1;
-        setFilesCount(Math.floor((next / 100) * 1000));
-        setTimeRemainingSeconds(Math.max(0, 154 - Math.floor((next / 100) * 154)));
+        setFilesCount(Math.floor((next / 100) * 1150));
+        setTimeRemainingSeconds(Math.max(0, 45 - Math.floor((next / 100) * 45)));
 
         if (next >= 100) {
           clearInterval(progressInterval);

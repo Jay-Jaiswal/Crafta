@@ -7,4 +7,5 @@ websockets==15.0.1
 python-dotenv==1.1.0
 numpy==2.2.4
 opencv-python-headless==4.11.0.86
-torch==2.11.0
+# Optional locally for enhanced suggestion model; backend gracefully runs without torch.
+# Install manually when needed: pip install torch

@@ -12,6 +12,7 @@ interface DownloadProps {
   isAnimating?: boolean;
   statusText?: string;
   realProgress?: number;
+  fileSize?: number;
   onAnimationComplete?: () => void;
 }
 
@@ -25,10 +26,10 @@ export function AnimatedDownload({
   isAnimating = false,
   statusText = "READY",
   realProgress,
+  fileSize,
   onAnimationComplete,
 }: DownloadProps) {
   const [animatedProgress, setAnimatedProgress] = useState(0);
-  const [filesCount, setFilesCount] = useState(0);
   const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(45);
   const shouldReduceMotion = useReducedMotion();
 
@@ -82,25 +83,23 @@ export function AnimatedDownload({
   useEffect(() => {
     if (!isAnimating) {
       setAnimatedProgress(0);
-      setFilesCount(0);
-      setTimeRemainingSeconds(45);
+      setTimeRemainingSeconds(fileSize ? Math.max(15, Math.floor((fileSize / (1024 * 1024)) * 1.5)) : 45);
       return;
     }
+
+    const maxSeconds = fileSize ? Math.max(15, Math.floor((fileSize / (1024 * 1024)) * 1.5)) : 45;
 
     if (realProgress !== undefined && realProgress >= 0) {
       // If we are given a real progress number, map "0-100" to it
       setAnimatedProgress(realProgress);
-      const fakeFilesCount = Math.floor((realProgress / 100) * 1150);
-      setFilesCount(fakeFilesCount);
-      setTimeRemainingSeconds(Math.max(0, 45 - Math.floor((realProgress / 100) * 45)));
+      setTimeRemainingSeconds(Math.max(0, maxSeconds - Math.floor((realProgress / 100) * maxSeconds)));
       return;
     }
 
     const progressInterval = setInterval(() => {
       setAnimatedProgress((prev) => {
         const next = prev + 1;
-        setFilesCount(Math.floor((next / 100) * 1150));
-        setTimeRemainingSeconds(Math.max(0, 45 - Math.floor((next / 100) * 45)));
+        setTimeRemainingSeconds(Math.max(0, maxSeconds - Math.floor((next / 100) * maxSeconds)));
 
         if (next >= 100) {
           clearInterval(progressInterval);
@@ -113,7 +112,13 @@ export function AnimatedDownload({
     return () => {
       clearInterval(progressInterval);
     };
-  }, [isAnimating, duration, realProgress]);
+  }, [isAnimating, duration, realProgress, fileSize]);
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return "0.00 MB";
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(2)} MB`;
+  };
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -256,7 +261,7 @@ export function AnimatedDownload({
             <div className="text-base font-mono">EST. TIME</div>
           </div>
           <div className="w-32 text-left">
-            <div className="text-base font-mono">FILES COPIED:</div>
+            <div className="text-base font-mono">FILE SIZE:</div>
           </div>
         </div>
       </div>
@@ -278,7 +283,7 @@ export function AnimatedDownload({
             <div className="text-lg font-mono">{formatTime(timeRemainingSeconds)}</div>
           </div>
           <div className="w-32 text-left">
-            <div className="text-lg font-mono">{filesCount.toLocaleString()}</div>
+            <div className="text-lg font-mono">{formatFileSize(fileSize)}</div>
           </div>
         </div>
       </div>

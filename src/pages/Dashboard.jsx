@@ -134,6 +134,7 @@ const Dashboard = () => {
                 isAnimating={isPipelineActive}
                 statusText={progressStateLabel}
                 realProgress={isUploading ? uploadProgress : processingProgress}
+                fileSize={selectedFile?.size || 0}
               />
               <div className="w-full max-w-md px-1">
                 <Progress

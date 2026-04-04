@@ -33,7 +33,7 @@ class VideoValidationError(Exception):
 
 async def save_video(file: UploadFile) -> tuple[str, Path]:
     """
-    Validate and save an uploaded video file.
+    Validate and save an uploaded video file securely by streaming it to disk.
 
     Returns:
         Tuple of (video_id, video_path)
@@ -45,44 +45,32 @@ async def save_video(file: UploadFile) -> tuple[str, Path]:
     if not file.filename:
         raise VideoValidationError("No filename provided")
 
-    if not validate_video_extension(file.filename):
+    ext = get_file_extension(file.filename)
+    if ext not in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
         raise VideoValidationError(
             f"Invalid file format. Allowed: mp4, mov, avi, mkv, webm"
         )
 
-    # Read file content
-    content = await file.read()
-
-    # Validate size
-    if not validate_file_size(len(content)):
-        raise VideoValidationError(
-            f"File too large. Maximum size: 500MB"
-        )
-
     # Generate ID and save
     video_id = generate_video_id()
-    ext = get_file_extension(file.filename)
     video_path = get_video_path(video_id, ext)
 
     # Ensure directory exists
     video_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Write file
+    # Stream the file directly to disk to save memory and avoid delays
+    total_size = 0
+    MAX_SIZE = 500 * 1024 * 1024 # 500 MB
+    
     with open(video_path, "wb") as f:
-        f.write(content)
+        while chunk := await file.read(1024 * 1024): # 1MB chunks
+            total_size += len(chunk)
+            if total_size > MAX_SIZE:
+                video_path.unlink(missing_ok=True)
+                raise VideoValidationError(f"File too large. Maximum size: 500MB")
+            f.write(chunk)
 
-    logger.info(f"Saved video {video_id} ({len(content)} bytes) to {video_path}")
-
-    # Compute hash for deduplication
-    file_hash = compute_file_hash(video_path)
-    cached_id = _hash_cache.get(file_hash)
-
-    if cached_id and cached_id != video_id:
-        logger.info(f"Duplicate detected: {video_id} matches {cached_id}")
-        # Keep the new upload but note the duplicate
-        # Could return cached_id instead for true deduplication
-
-    _hash_cache[file_hash] = video_id
+    logger.info(f"Saved video {video_id} ({total_size} bytes) directly to {video_path}")
 
     return video_id, video_path
 
